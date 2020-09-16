@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="deptCallManageDAO">
+
+    <resultMap id="deptCallManageVO" type="egovframework.com.uss.umt.service.DeptCallManageVO">
+        <result property="orgnztId" column="ORGNZT_ID"/>
+        <result property="orgnztCall" column="ORGNZT_CALL"/>
+        <result property="orgnztSeq" column="ORGNZT_SEQ"/>
+        
+        <result property="orgnztCheck" column="ORGNZT_CHECK"/>
+        <result property="createDt" column="CREATE_DT"/>
+        <result property="userId" column="USERID"/>
+    </resultMap>
+
+    <select id="selectDeptCallManageList" resultMap="deptCallManageVO">
+            
+            SELECT  * 
+              FROM  (
+            SELECT ROWNUM RNUM, ALL_LIST.* 
+              FROM  (
+
+            SELECT CALL_SEQ,
+            	   ORGNZT_ID,
+                   ORGNZT_CALL,
+                   ORGNZT_SEQ,
+                   ORGNZT_CHECK,
+                   CREATE_DT,
+                   USERID
+              FROM COMTNORGNZTCALLINFO 
+             WHERE 1=1
+                             
+            <if test="searchCondition == 1">AND
+                ORGNZT_CALL LIKE '%'||#{searchKeyword}||'%'
+            </if>
+            <![CDATA[     
+            ORDER BY ORGNZT_SEQ DESC
+                    ) ALL_LIST
+                    )
+             WHERE  RNUM  > #{firstIndex}
+               AND  RNUM <= #{firstIndex} + #{recordCountPerPage}
+               ]]>
+                          
+    </select>
+
+    <select id="selectDeptCallManageListTotCnt" resultType="int">
+
+            SELECT COUNT(*) totcnt
+            FROM COMTNORGNZTCALLINFO
+            WHERE 1=1
+            <if test="searchCondition == 1">AND
+                ORGNZT_CALL LIKE '%'||#{searchKeyword}||'%'
+            </if>
+    </select>
+    
+    <select id="selectDeptCallManage" resultMap="deptCallManageVO">
+        
+            SELECT ORGNZT_ID,
+                   ORGNZT_CALL,
+                   ORGNZT_SEQ,
+                   ORGNZT_CHECK,
+                   CREATE_DT,
+                   USERID
+              FROM COMTNORGNZTCALLINFO
+             WHERE CALL_SEQ = #{callSeq}    
+        
+    </select>
+
+    <insert id="insertDeptCallManage">
+        
+            INSERT INTO COMTNORGNZTCALLINFO
+                   (ORGNZT_ID,
+                   ORGNZT_CALL,
+                   ORGNZT_SEQ,
+                   ORGNZT_CHECK,
+                   CREATE_DT,
+                   USERID)
+            VALUES (#{orgnztId},
+                    #{orgnztCall},
+                    #{orgnztSeq},
+                    #{orgnztCheck}, 
+                    #{createDt}, 
+                    #{userId})   
+        
+    </insert>     
+
+    <update id="updateDeptCallManage">
+            UPDATE COMTNORGNZTCALLINFO
+               SET ORGNZT_ID = #{orgnztId},
+                   ORGNZT_CALL = #{orgnztCall},
+                   ORGNZT_SEQ = #{orgnztSeq},
+                   ORGNZT_CHECK = #{orgnztCheck},
+                   CREATE_DT = #{createDt},
+                   USERID = #{userId} 
+             WHERE CALL_SEQ = #{callSeq}      
+    </update>    
+    
+    <delete id="deleteDeptCallManage">
+        
+            DELETE FROM COMTNORGNZTCALLINFO
+             WHERE CALL_SEQ = #{callSeq}    
+        
+    </delete>  
+
+</mapper>

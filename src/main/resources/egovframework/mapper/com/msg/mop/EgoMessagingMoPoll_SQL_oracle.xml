@@ -1,0 +1,355 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="MessagingMoPollDAO">
+
+	<resultMap id="messagingMoPoll"
+		type="egovframework.com.msg.mop.service.MessagingMoPollVO">
+		<result property="survey_seq" column="survey_seq" />
+		<result property="work_seq" column="work_seq" />
+		<result property="subject" column="subject" />
+		<result property="start_date" column="start_date" />
+		<result property="end_date" column="end_date" />
+		<result property="status" column="status" />
+		<result property="request_rate" column="request_rate" />
+		<result property="send_date" column="send_date" />
+	</resultMap>
+	
+	<resultMap type="egovframework.com.msg.mop.service.MessagingMoPollResponse" id="response">
+		<result property="survey_seq" column="survey_seq" />
+		<result property="mo_originator" column="mo_originator" />
+		<result property="reple_keyword" column="reple_keyword" />
+		<result property="reple_date" column="reple_date" />
+		<result property="rownum" column="rownum" />
+	</resultMap>
+
+	<resultMap id="messagingMoNewPoll"
+		type="egovframework.com.msg.mop.service.MessagingMoPollVO">
+		<result property="survey_seq" column="survey_seq" />
+		<result property="work_seq" column="work_seq" />
+		<result property="reg_date" column="reg_date" />
+		<result property="subject" column="subject" />
+		<result property="start_date" column="start_date" />
+		<result property="end_date" column="end_date" />
+		<result property="status" column="status" />
+		<result property="mod_date" column="mod_date" />
+		<result property="mo_recipient" column="mo_recipient" />
+		<result property="etc_total_rate" column="etc_total_rate" />
+		<result property="reg_user_id" column="reg_user_id" />
+		<result property="reg_user_name" column="reg_user_name" />
+		<result property="request_rate" column="request_rate" />
+		<result property="shutdown_flag" column="shutdown_flag" />
+		<result property="send_date" column="send_date" />
+		<result property="mod_date" column="mod_date" />
+		<result property="mod_part_name" column="mod_part_name" />
+		<result property="mod_user_name" column="mod_user_name" />
+		<result property="mod_user_id" column="mod_user_id" />
+		<result property="start_notice" column="start_notice" />
+		<result property="end_notice" column="end_notice" />
+		<result property="question" column="question" />
+		<result property="example1" column="example1" />
+		<result property="example2" column="example2" />
+		<result property="example3" column="example3" />
+		<result property="example4" column="example4" />
+		<result property="example1_keyword" column="example1_keyword" />
+		<result property="example2_keyword" column="example2_keyword" />
+		<result property="example3_keyword" column="example3_keyword" />
+		<result property="example4_keyword" column="example4_keyword" />
+		<result property="example1_total_cnt" column="example1_total_cnt" />
+		<result property="example2_total_cnt" column="example2_total_cnt" />
+		<result property="example3_total_cnt" column="example3_total_cnt" />
+		<result property="example4_total_cnt" column="example4_total_cnt" />
+		<result property="example1_total_rate" column="example1_total_rate" />
+		<result property="example2_total_rate" column="example2_total_rate" />
+		<result property="example3_total_rate" column="example3_total_rate" />
+		<result property="example4_total_rate" column="example4_total_rate" />
+		<result property="etc_total_rate" column="etc_total_rate" />
+		<result property="del_flag" column="del_flag" />
+		<result property="workNm" column="workNm" />
+		<result property="total_send_cnt" column="total_send_cnt" />
+		<result property="request_cnt" column="request_cnt" />
+	</resultMap>
+
+	
+	<select id="messagingMoPollList"
+		parameterType="egovframework.com.msg.mop.service.MessagingMoPollVO"
+		resultMap="messagingMoNewPoll">
+       <![CDATA[
+            SELECT
+                survey_seq, work_seq, mo_recipient, subject, start_date, end_date, status, request_rate, send_date, reg_date,
+                etc_total_rate, reg_user_id, reg_user_name,request_rate,shutdown_flag, send_date, mod_date, mod_part_name, mod_user_name, mod_user_id,
+                start_notice, end_notice, question, example1, example2, example3, example4, example1_keyword, example2_keyword, example3_keyword,
+                example4_keyword, example1_total_cnt, example2_total_cnt, example3_total_cnt, example4_total_cnt, example1_total_rate, example2_total_rate,
+                example3_total_rate, example4_total_rate, etc_total_rate, del_flag,total_send_cnt,request_cnt,
+                (
+                	SELECT 
+						code_nm as codeNm 
+					FROM 
+						comtccmmndetailcode  
+					WHERE 
+						code_id='COM003' and
+						code = mst.work_seq
+                ) workNm
+            FROM
+                MO_SURVEY_TB mst
+            WHERE
+                survey_seq > 0 and (status = 3 or status = 2 or shutdown_flag = 'Y') and reg_user_id = #{reg_user_id}
+        ]]>
+		<include refid="searchDateStatus"></include>
+		<include refid="mo_recipient"></include>
+		<include refid="status"></include>
+		<include refid="shutdown_flag"></include>
+		<include refid="work_seq"></include>
+		<include refid="searchType"></include>
+		<include refid="reg_user_id"></include>
+	</select>
+	
+	<select id="messagingMngMoPollList"
+		parameterType="egovframework.com.msg.mop.service.MessagingMoPollVO"
+		resultMap="messagingMoNewPoll">
+       <![CDATA[
+            SELECT
+                survey_seq, work_seq, mo_recipient, subject, start_date, end_date, status, request_rate, send_date, reg_date,
+                etc_total_rate, reg_user_id, reg_user_name,request_rate,shutdown_flag, send_date, mod_date, mod_part_name, mod_user_name, mod_user_id,
+                start_notice, end_notice, question, example1, example2, example3, example4, example1_keyword, example2_keyword, example3_keyword,
+                example4_keyword, example1_total_cnt, example2_total_cnt, example3_total_cnt, example4_total_cnt, example1_total_rate, example2_total_rate,
+                example3_total_rate, example4_total_rate, etc_total_rate, del_flag,total_send_cnt,request_cnt
+            FROM
+                MO_SURVEY_TB
+            WHERE
+                survey_seq > 0 and (status = 3 or status = 2 or shutdown_flag = 'Y')
+        ]]>
+		<include refid="searchDateStatus"></include>
+		<include refid="mo_recipient"></include>
+		<include refid="status"></include>
+		<include refid="shutdown_flag"></include>
+		<include refid="work_seq"></include>
+		<include refid="searchType"></include>
+		<include refid="reg_user_id"></include>
+	</select>
+
+
+
+
+	<!-- 전송일 or 투표기간 (0:전송일, 1:투표기간, 2:등록일) -->
+	<sql id="searchDateStatus">
+		<if test="searchDateStatus != null">
+			<if test="searchDateStatus == 0">
+				and send_date BETWEEN #{searchBgnDe} and #{searchEndDe}
+			</if>
+			<if test="searchDateStatus == 1">
+				and start_date BETWEEN #{searchBgnDe} and #{searchEndDe}
+				and end_date BETWEEN #{searchBgnDe} and #{searchEndDe}
+			</if>
+			<if test="searchDateStatus == 2">
+				and reg_date BETWEEN #{searchBgnDe} and #{searchEndDe}
+			</if>
+		</if>
+	</sql>
+
+	<!-- MO 번호 -->
+	<sql id="mo_recipient">
+		<if test="mo_recipient != null">
+			and mo_recipient = #{mo_recipient}
+		</if>
+	</sql>
+
+	<!-- status -->
+	<sql id="status">
+		<if test="status != null">
+			<if test="status == 2">
+				and status = 2
+			</if>
+			<if test="status == 3">
+				and status = 3
+			</if>
+		</if>
+	</sql>
+
+	<!-- 강제종료 여부 -->
+	<sql id="shutdown_flag">
+		<if test="shutdown_flag == 'Y'">
+			and shutdown_flag = 'Y'
+		</if>
+	</sql>
+
+	<!-- 업무분류코드 -->
+	<sql id="work_seq">
+		<if test="work_seq != null">
+			work_seq = #{work_seq}
+		</if>
+	</sql>
+	
+	<!-- 검색어 -->
+	<sql id="searchType">
+        <if test="searchCnd != null">
+            <if test="searchCnd == 1">
+                and subject like '%'||#{searchWrd}||'%'
+            </if>
+        </if>
+    </sql>
+
+	<select id="messagingMoPollSelectOne"
+		parameterType="egovframework.com.msg.mop.service.MessagingMoPollVO"
+		resultMap="messagingMoPoll">
+		<![CDATA[
+			SELECT
+				survey_seq, work_seq, mo_recipient, subject, start_date, end_date, status, request_rate, send_date, reg_date, etc_total_rate, REG_USER_ID, REG_USER_NAME
+			FROM
+				MO_SURVEY_TB
+			WHERE
+				survey_seq = #{survey_seq}
+		]]>
+	</select>
+
+
+	<select id="messagingMoPollNewList"
+		parameterType="egovframework.com.msg.mop.service.MessagingMoPollVO"
+		resultMap="messagingMoNewPoll">
+		 
+		 <![CDATA[
+       
+            SELECT
+                survey_seq, work_seq, mo_recipient, subject, start_date, end_date, status, request_rate, send_date, reg_date,
+                etc_total_rate, reg_user_id, reg_user_name,request_rate,shutdown_flag, send_date, mod_date, mod_part_name, mod_user_name, mod_user_id,
+                start_notice, end_notice, question, example1, example2, example3, example4, example1_keyword, example2_keyword, example3_keyword,
+                example4_keyword, example1_total_cnt, example2_total_cnt, example3_total_cnt, example4_total_cnt, example1_total_rate, example2_total_rate,
+                example3_total_rate, example4_total_rate, etc_total_rate, del_flag,
+                (
+                	SELECT 
+						code_nm as codeNm 
+					FROM 
+						comtccmmndetailcode  
+					WHERE 
+						code_id='COM003' and
+						code = mst.work_seq
+                ) workNm
+            FROM
+                MO_SURVEY_TB mst
+            WHERE
+                survey_seq > 0 and (status = 0 or status = 1) and del_flag = 'N' and reg_user_id = #{reg_user_id}
+        ]]>
+		<include refid="newStatus"></include>
+		<include refid="searchDateStatus"></include>
+		<include refid="work_seq"></include>
+		<include refid="reg_user_id"></include>
+	
+	</select>
+	
+	<select id="messagingMoPollMngNewList"
+		parameterType="egovframework.com.msg.mop.service.MessagingMoPollVO"
+		resultMap="messagingMoNewPoll">
+		 
+		 <![CDATA[
+       
+            SELECT
+                survey_seq, work_seq, mo_recipient, subject, start_date, end_date, status, request_rate, send_date, reg_date,
+                etc_total_rate, reg_user_id, reg_user_name,request_rate,shutdown_flag, send_date, mod_date, mod_part_name, mod_user_name, mod_user_id,
+                start_notice, end_notice, question, example1, example2, example3, example4, example1_keyword, example2_keyword, example3_keyword,
+                example4_keyword, example1_total_cnt, example2_total_cnt, example3_total_cnt, example4_total_cnt, example1_total_rate, example2_total_rate,
+                example3_total_rate, example4_total_rate, etc_total_rate, del_flag
+            FROM
+                MO_SURVEY_TB
+            WHERE
+                survey_seq > 0 and (status = 0 or status = 1) and del_flag = 'N'
+        ]]>
+		<include refid="newStatus"></include>
+		<include refid="searchDateStatus"></include>
+		<include refid="work_seq"></include>
+		<include refid="reg_user_id"></include>
+	
+	</select>
+
+	<sql id="newStatus">
+		<if test="status != null">
+			<if test="status == 0">
+				and status = 0
+			</if>
+			<if test="status == 1">
+				and status = 1
+			</if>
+		</if>
+	</sql>
+
+	<sql id="reg_user_id">
+		<if test="reg_user_id != null"> 
+				and reg_user_id = #{reg_user_id} 
+		</if>
+	</sql>
+	
+	
+	<update id="updateMessagingMoPollShutdown">
+		UPDATE
+			MO_SURVEY_TB
+		SET
+			shutdown_flag = #{shutdown_flag}
+		WHERE
+			survey_seq = #{survey_seq}
+	</update>
+	
+	
+	<insert id="insertMessagingMoNewPoll">
+		INSERT INTO MO_SURVEY_TB
+			(survey_seq, reg_user_name, reg_user_id, reg_part_name,
+			subject, start_date, end_date, mo_recipient, work_seq,
+			start_notice,
+			end_notice, question, example1, example1_keyword, example2,
+			example2_keyword, example3, example3_keyword, example4,
+			example4_keyword, EMO_RECIPIENT)
+		VALUES
+			(survey_seq.NEXTVAL, #{reg_user_name}, #{reg_user_id}, #{reg_part_name}, #{subject}, #{start_date}, #{end_date},
+			#{mo_recipient}, #{work_seq}, #{start_notice}, #{end_notice},
+			#{question}, #{example1}, #{example1_keyword}, #{example2},
+			#{example2_keyword}, #{example3}, #{example3_keyword}, #{example4},
+			#{example4_keyword}, #{emo_recipient})
+	</insert>
+
+	<update id="updateMessagingMoNewPollDel">
+		UPDATE
+			MO_SURVEY_TB
+		SET
+			del_flag = #{del_flag}
+		WHERE
+			survey_seq = #{survey_seq}
+	</update>
+	
+	<update id="updateMessagingMoNewPoll">
+		UPDATE
+			MO_SURVEY_TB
+		SET
+			survey_seq = #{survey_seq}, reg_user_name = #{reg_user_name},
+			subject = #{subject}, start_date = #{start_date}, end_date = #{end_date},
+			mo_recipient = #{mo_recipient}, work_seq = #{work_seq},
+			start_notice = #{start_notice},
+			end_notice = #{end_notice}, question = #{question}, example1 = #{example1},
+			example1_keyword = #{example1_keyword}, example2 = #{example2},
+			example2_keyword = #{example2_keyword}, example3 = #{example3},
+			example3_keyword = #{example3_keyword}, example4 = #{example4},
+			example4_keyword = #{example4_keyword}, mod_date = SYSDATE,
+			mod_part_name = #{mod_part_name}, mod_user_name = #{mod_user_name}, mod_user_id = #{mod_user_id}
+		WHERE
+			survey_seq = #{survey_seq}
+	</update>
+	
+	<update id="pollComClose">
+		UPDATE
+			MO_SURVEY_TB
+		SET
+			shutdown_flag = 'Y', mod_date = SYSDATE, statue = 3,
+			mod_part_name = #{mod_part_name}, mod_user_name = #{mod_user_name}, mod_user_id = #{mod_user_id}
+		WHERE
+			survey_seq = #{survey_seq}
+	</update>
+	
+	<select id="pollResponseList" resultMap="response">
+		SELECT survey_seq, mo_originator, rownum
+		FROM MO_SURVEY_HISTORY
+		WHERE survey_seq = #{survey_seq}
+	</select>
+	
+	<select id="pollResponseListSelect" resultMap="response">
+		SELECT survey_seq, mo_originator, rownum
+		FROM MO_SURVEY_HISTORY
+		WHERE survey_seq = #{survey_seq} and reple_keyword = #{reple_keyword}
+	</select>
+</mapper>

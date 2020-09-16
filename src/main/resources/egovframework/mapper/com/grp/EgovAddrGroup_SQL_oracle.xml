@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="AddrGroupDAO">
+
+	<select id="addrGroupList" parameterType="egovframework.com.grp.service.AddrGroupVO" resultType="egovframework.com.grp.service.AddrGroupVO">
+		SELECT 
+			CODE,
+			TITLE,
+			SEQUENCE, 
+			PARENT,  
+			DEPTH, 
+			TYPE,
+			(
+				SELECT
+	                count(*) cnt
+	            FROM
+	                ADDRESS_BOOK
+	            WHERE
+	            	1=1
+	            <choose>
+	            	<when test="type != null and type.equals('0'.toString())"><!-- type 0 개인-->
+						and ADDRESS_TYPE = '0' 
+						and user_id =  C.USERID
+					</when>
+					<when test="(orgnzt_id != null and !orgnzt_id.equals(''.toString())) or (type != null and type.equals('1'.toString()))"><!-- type 1 부서 -->
+						and ADDRESS_TYPE =  '1'
+						and part_id = #{orgnzt_id}
+					</when>
+					<when test="type != null and type.equals('2'.toString())"><!-- type 2 공유 -->
+						and ADDRESS_TYPE = '2'
+					</when>
+					<when test="type != null and type.equals('3'.toString())"><!-- type 3 직원 -->
+						and ADDRESS_TYPE = 3 
+					</when>
+				</choose>
+				and ADDRESS_CATEGORY in(
+	            	SELECT 
+			           	CODE 
+			           FROM 
+			           	COMADDRGROUP
+			           WHERE
+			           	code = C.CODE
+			           	OR
+			           	parent = C.CODE
+	            )
+	         ) GROUPCNT,
+	         C.USERID,
+	         Y.USER_NM 
+		FROM 
+			COMADDRGROUP C
+			LEFT JOIN COMTNEMPLYRINFO Y ON C.USERID = Y.EMPLYR_ID 
+		WHERE 
+		1=1
+		<choose>
+		<when test="type != null and type.equals('0'.toString())"><!-- type 0 개인-->
+			and TYPE = '0' 
+			and USERID = #{userid}
+		</when>
+		<when test="(orgnzt_id != null and !orgnzt_id.equals(''.toString())) or (type != null and type.equals('1'.toString()))"><!-- type 1 부서 -->
+			and Y.ORGNZT_ID = #{orgnzt_id}
+			and TYPE = 1
+		</when>
+		<when test="type != null and type.equals('2'.toString())"><!-- type 2 공유 -->
+			and TYPE = '2'
+		</when> 
+		<when test="type != null and type.equals('3'.toString())"><!-- type 3 직원 -->
+			and TYPE = 3 
+		</when>
+		<otherwise>
+			and USERID = #{userid}
+		</otherwise>
+		</choose>
+			START WITH PARENT = '0' 
+			CONNECT BY PRIOR  CODE = PARENT
+		ORDER 
+			SIBLINGS BY PARENT ASC, SEQUENCE ASC, TITLE ASC, 
+			(
+				CASE 
+					WHEN SEQUENCE_DT IS NULL THEN 2
+					ELSE 1
+				END
+			) ASC,
+			SEQUENCE_DT DESC
+	</select>
+	
+	<select id="addrGroupSelectOne" resultType="egovframework.com.grp.service.AddrGroupVO">
+		SELECT
+		    title, parent, sequence, depth, type
+		FROM
+		    COMADDRGROUP
+		WHERE
+		    code = #{code}
+	</select>
+	
+	<insert id="addrGroupInsert">
+		INSERT INTO COMADDRGROUP(code, title, parent, sequence, depth, type, userid)
+		VALUES (GROUPID.nextval, #{title}, #{parent}, #{sequence}, #{depth}, #{type}, #{userid})
+	</insert>
+	
+	<update id="addrGroupUpdate">
+		UPDATE COMADDRGROUP
+		SET title = #{title}, parent = #{parent}, sequence = #{sequence}, depth = #{depth}, type = #{type}
+		WHERE userid = #{userid} and code = #{code}
+	</update>
+	<update id="addrGroupUpdateName">
+		/*주소록 이름 변경*/
+		UPDATE COMADDRGROUP
+		SET title = #{title}
+		WHERE code = #{code}
+	</update>
+	<update id="addrGroupUpdateSequence">
+		/*주소록 이름 변경*/
+		UPDATE COMADDRGROUP
+		SET sequence = #{sequence}, sequence_dt = sysdate
+		WHERE code = #{code}
+	</update>
+	
+	<delete id="addrGroupDelete">
+		DELETE FROM COMADDRGROUP
+		WHERE userid = #{userid} and code = #{code}
+	</delete>
+	<delete id="addrGroupDeletes">
+		DELETE FROM COMADDRGROUP
+		WHERE code = #{code}
+		<if test="depth != null and depth.equals('1')">
+			or parent = #{code}
+		</if>
+	</delete>
+</mapper>

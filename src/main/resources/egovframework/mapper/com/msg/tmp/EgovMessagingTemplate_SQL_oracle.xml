@@ -1,0 +1,261 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="MessagingTemplateDAO">
+
+	<resultMap id="messagingTemplateList"
+		type="egovframework.com.msg.tmp.service.MessagingTemplateVO">
+		<result property="template_data_seq" column="template_data_seq" />
+		<result property="inspection_status" column="inspection_status" />
+		<result property="subject" column="subject" />
+		<result property="template_content" column="template_content" />
+		<result property="status" column="status" />
+		<result property="process_ing" column="process_ing" />
+		<result property="template_name" column="TEMPLATE_NAME" />
+		<result property="cur_status" column="cur_status" />
+		<result property="template_code" column="TEMPLATE_CODE" />
+		<result property="template_buttons" column="template_buttons" />
+		<result property="template_variables" column="template_variables" />
+		<result property="template_type" column="template_type" />
+		<result property="sender_key" column="sender_key" />
+	</resultMap>
+	
+	<resultMap id="messagingTemplateDetail"
+		type="egovframework.com.msg.tmp.service.MessagingTemplateVO">
+		<result property="template_data_seq" column="TEMPLATE_DATA_SEQ" />
+		<result property="sender_key" column="SENDER_KEY" />
+		<result property="template_code" column="TEMPLATE_CODE" />
+		<result property="template_name" column="TEMPLATE_NAME" />
+		<result property="template_content" column="TEMPLATE_CONTENT" />
+		<result property="template_buttons" column="TEMPLATE_BUTTONS" />
+		<result property="reg_id" column="REG_ID" />
+		<result property="work_seq" column="WORK_SEQ" />
+		<result property="use_yn" column="USE_YN" />
+		<result property="template_type" column="TEMPLATE_TYPE" />
+		<result property="subject" column="SUBJECT" />
+		<result property="reg_date" column="REG_DATE" />
+		<result property="status" column="STATUS" />
+		<result property="inspection_status" column="INSPECTION_STATUS" />
+		<result property="template_variables" column="template_variables" />
+	</resultMap>
+	
+	<resultMap id="messagingTemplateComment"
+		type="egovframework.com.msg.tmp.service.MessagingTemplateVO">
+		<result property="content" column="content" />
+		<result property="created_at" column="created_at" />
+		<result property="status" column="status" />
+	</resultMap>
+
+	<select id="messagingTemplateList"
+		parameterType="egovframework.com.msg.tmp.service.MessagingTemplateVO"
+		resultMap="messagingTemplateList">       
+            SELECT
+                template_data_seq, inspection_status, subject, template_content, template_type, template_buttons, 
+            	status, process_ing, template_name, cur_status, TEMPLATE_VARIABLES, template_code, template_variables, sender_key
+            FROM
+                TEMPLATE_DATA
+            WHERE
+                template_data_seq IS NOT NULL
+				and subject like '%'||#{subject}||'%'
+				and template_name like '%'||#{template_name}||'%'
+				and template_content like '%'||#{template_content}||'%'
+				<if test="use_yn != null and !use_yn.equals(''.toString())">
+					and use_yn = #{use_yn}
+				</if>
+				<if test="work_seq != null">
+					and work_seq = #{work_seq}
+				</if>
+				<if test="inspection_status != null and !inspection_status.equals(''.toString())">
+					and inspection_status = #{inspection_status}
+				</if>
+            ORDER BY
+            	template_data_seq desc
+	</select>
+	
+	<select id="templateDetail" resultMap="messagingTemplateDetail">
+		SELECT
+			TEMPLATE_DATA_SEQ template_data_seq,
+			SENDER_KEY sender_key,
+			TEMPLATE_CODE template_code,
+			TEMPLATE_NAME template_name,
+			TEMPLATE_CONTENT template_content,
+			TEMPLATE_BUTTONS template_buttons,
+			REG_ID reg_id,
+			WORK_SEQ work_seq,
+			USE_YN use_yn,
+			TEMPLATE_TYPE template_type,
+			SUBJECT subject,
+			REG_DATE reg_date,
+			STATUS status,
+			INSPECTION_STATUS inspection_status
+		FROM
+			TEMPLATE_DATA
+		WHERE
+			TEMPLATE_DATA_SEQ = #{template_data_seq}
+	</select> 
+	
+	<select id="templateComments" resultMap="messagingTemplateComment">
+		SELECT
+			content,
+			created_at,
+			status
+		FROM
+			TEMPLATE_COMMENTS
+		WHERE
+			TEMPLATE_CODE = #{template_code}
+	</select> 
+
+	<!-- 사용여부 -->
+	<sql id="use_yn">
+		<if test="use_yn != null">
+			and use_yn = #{use_yn}
+		</if>
+	</sql>
+	
+	<!-- 업무분류 -->
+	<sql id="work_seq">
+		<if test="work_seq != null">
+			and work_seq = #{work_seq}
+		</if>
+	</sql>
+	
+	<!-- 템플릿 상태 -->
+	<sql id="inspection_status">
+		<if test="inspection_status != null">
+			and inspection_status = #{inspection_status}
+		</if>
+	</sql>
+	
+	<!-- 검색어 -->
+	<sql id="searchType">
+        <if test="searchCnd != null">
+            <if test="searchCnd == 1">
+                and subject like '%'||#{searchWrd}||'%'
+            </if>
+            <if test="searchCnd == 2">
+                and template_name like '%'||#{searchWrd}||'%'
+            </if>
+            <if test="searchCnd == 3">
+                and template_content like '%'||#{searchWrd}||'%'
+            </if>
+        </if>
+    </sql>
+    
+    <update id="messagingTemplateDelete">
+    	UPDATE TEMPLATE_DATA
+    	SET  CUR_STATUS=8
+    	, INSPECTION_STATUS = 'DEL'
+		, MOD_DATE=SYSDATE
+		, MOD_ID=#{mod_id}
+		WHERE template_data_seq = #{template_data_seq}
+    </update>
+    
+    <insert id="messagingTemplateInsert">
+    	Insert into LEANAUTO.TEMPLATE_DATA (
+		    TEMPLATE_DATA_SEQ,
+		    SENDER_KEY,
+		    TEMPLATE_CODE,
+		    TEMPLATE_NAME,
+		    TEMPLATE_CONTENT,
+		    TEMPLATE_BUTTONS,
+		    TEMPLATE_MODIFY_NAME,
+		    TEMPLATE_MODIFY_CONTENT,
+		    TEMPLATE_MODIFY_BUTTONS,
+		    INSPECTION_STATUS,
+		    CREATED_AT,     MODIFIED_AT,     STATUS,
+		    CUR_STATUS,     PROCESS_ING,     COMMENT_COUNT,
+		    SUBJECT,
+		    REG_DATE,
+		    MOD_DATE,
+		    REG_ID,
+		    MOD_ID,
+		    WORK_SEQ,
+		    USE_YN,
+		    TEMPLATE_TYPE,
+		    TEMPLATE_VARIABLES
+		) values
+		( 
+		    TEMPLATE_DATA_SEQ01.nextval,
+		    #{sender_key},
+		    #{template_code},
+		    #{template_name},
+		    #{template_content},
+		    #{template_buttons},
+		    #{template_name},
+		    #{template_content},
+		    #{template_buttons},
+		    'REG',
+		    null,null,null,
+		    0,     'N',     0,
+		    #{subject},
+		    sysdate,
+		    null,
+		    #{reg_id},
+		    null,
+		    #{work_seq},
+		    'Y',
+		    #{template_type},
+		    #{template_variables}
+		)
+    </insert>
+
+	<update id="messagingTemplateUpdateWorkSeq">
+		UPDATE TEMPLATE_DATA
+		SET work_seq = #{work_seq}
+		WHERE template_data_seq = #{template_data_seq}
+	</update>
+	
+	<update id="messagingTemplateUpdateUseYn">
+		UPDATE TEMPLATE_DATA
+		SET use_yn = #{use_yn}
+		WHERE template_data_seq = #{template_data_seq}
+	</update>
+	
+	<update id="messagingTemplateUpdateTemplateType">
+		UPDATE TEMPLATE_DATA
+		SET template_type = #{template_type}
+		WHERE template_data_seq = #{template_data_seq}
+	</update>
+	
+	<update id="messagingTemplateUpdateSubject">
+		UPDATE TEMPLATE_DATA
+		SET subject = #{subject}
+		WHERE template_data_seq = #{template_data_seq}
+	</update>
+	
+	<select id="messagingTemplateCheckCode" resultType="Integer">
+		SELECT COUNT(*)
+		FROM TEMPLATE_DATA
+		WHERE TEMPLATE_CODE=#{checkCode}
+	</select>
+	
+	<update id="messagingUpdateTemplate">
+		UPDATE
+			TEMPLATE_DATA SET TEMPLATE_MODIFY_NAME=#{template_modify_name}
+			, TEMPLATE_MODIFY_CONTENT=#{template_modify_content}
+			, TEMPLATE_MODIFY_BUTTONS=#{template_modify_buttons}
+			, TEMPLATE_MODIFY_VARIABLES=#{template_modify_variables}
+			, CUR_STATUS=5
+			, MOD_DATE=SYSDATE
+			, MOD_ID=#{mod_id}
+		WHERE TEMPLATE_CODE=#{template_code}
+	</update>
+	<select id="selectTmpCode" resultType="String">
+		SELECT TEMPLATE_CODE
+		FROM TEMPLATE_DATA
+		WHERE TEMPLATE_DATA_SEQ = #{tmpSeq}
+	</select>
+	
+	<insert id="tmpIquiryInsert">
+		INSERT INTO TEMPLATE_COMMENTS (
+		COMMENT_SEQ, TEMPLATE_CODE, CONTENT, CREATED_AT, STATUS
+		) VALUES (
+		 TEMPLATE_COMMENTS_SEQ01.NEXTVAL, #{template_code}, #{content}, SYSDATE, 'INQ'
+		)
+	</insert>
+	
+	<update id="tmpIquiryUpdate">
+		UPDATE TEMPLATE_DATA SET CUR_STATUS=20, MOD_DATE=SYSDATE, MOD_ID=#{mod_id}
+		WHERE TEMPLATE_CODE=#{template_code}
+	</update>
+</mapper>

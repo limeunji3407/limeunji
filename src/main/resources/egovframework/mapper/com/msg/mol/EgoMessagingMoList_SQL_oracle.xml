@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="MessagingMoListDAO">
+
+<resultMap type="egovframework.com.msg.mop.service.MessagingMoListVO" id="MoList">
+	<result property="type" column="type" />
+	<result property="receive_date" column="receive_date" />
+	<result property="mo_callback" column="mo_callback" />
+	<result property="mo_recipient" column="mo_recipient" />
+	<result property="subject" column="subject" />
+	<result property="content" column="content" />
+</resultMap>
+
+	<select id="messagingMoList"
+		resultMap="MoList">
+       <![CDATA[
+           SELECT  '민원' as type,
+           date_mo_recv as receive_date,
+           mo_callback as mo_callback,
+           mo_recipient, 
+           subject,
+           content
+           FROM EM_MO_TRAN
+        ]]>
+	</select>
+
+
+</mapper>

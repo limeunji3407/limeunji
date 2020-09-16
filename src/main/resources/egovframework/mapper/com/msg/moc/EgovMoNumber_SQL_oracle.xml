@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="MoNumberDAO">
+
+	<resultMap id="moNumList"
+		type="egovframework.com.msg.moc.service.MoNumber">
+		<result property="mo_seq" column="mo_seq" />
+		<result property="mo_number" column="mo_number" />
+		<result property="mo_status" column="mo_status" />
+		<result property="mo_date" column="mo_date" />
+		<result property="mo_number_sub" column="mo_number_sub" />
+		<result property="mo_type" column="mo_type" />
+	</resultMap>
+
+	<select id="moNumberList"
+		parameterType="egovframework.com.msg.moc.service.MoNumber"
+		resultMap="moNumList">
+            SELECT
+                mo_seq, mo_number, mo_status, mo_date, mo_number_sub, mo_type
+            FROM
+                MO_NUMBER
+	</select>
+
+	<insert id="moNumberInsert">
+		INSERT INTO MO_NUMBER(mo_seq, mo_number, mo_status, mo_date, mo_number_sub, mo_type)
+		VALUES (MO_NUMBER_SEQ.NEXTVAL, #{mo_number}, #{mo_status}, SYSDATE, #{mo_number_sub}, #{mo_type})
+	</insert>
+	
+	<update id="moMoNumberUpdate">
+		UPDATE MO_NUMBER
+		SET mo_status = #{mo_status}
+		WHERE mo_seq = #{mo_seq}
+	</update>
+	 
+	 <select id="searchMoNum"
+		parameterType="egovframework.com.msg.moc.service.MoNumber"
+		resultMap="moNumList">
+            SELECT
+                mo_seq, mo_number, mo_status, mo_date, mo_number_sub, mo_type
+            FROM
+                MO_NUMBER
+            WHERE
+            	mo_number = #{mo_number} and mo_type = #{mo_type}
+	</select>
+</mapper>

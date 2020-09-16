@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="BasicCashLevelDAO">
+
+<resultMap id="basiccashlevel" type="egovframework.com.mng.mem.service.BasicCashLevelVO">
+<result property="adminid" column="ADMINID"/>
+<result property="lvid" column="LVID"/>
+<result property="lvname" column="LVNAME"/>
+<result property="userid" column="USERID"/>
+<result property="sms" column="SMS"/>
+<result property="lms" column="LMS"/>
+<result property="mms" column="MMS"/>
+<result property="notice" column="NOTICE"/>
+<result property="friend" column="FRIEND"/>
+<result property="regdate" column="CREATE_DE"/>
+<result property="updatedate" column="UPDATE_DE"/>
+</resultMap>
+
+
+<select id="selectBasicCashLevelList" resultMap="basiccashlevel">
+	SELECT
+        LVID				as "uid",
+        LVNAME         as "lvname",
+        SMS             as "sms",
+        LMS             as "lms",
+        MMS           as "mms",
+        NOTICE               as "notice",
+        FRIEND      as "friend",
+        CREATE_DE,
+        UPDATE_DE
+    FROM    COMBASICCASHLEVEL
+</select>
+
+<select id="selectBasicCashLevelListAll" parameterType="string" resultMap="basiccashlevel">
+	SELECT
+        LVID				as "uid",
+        LVNAME         as "lvname",
+        SMS             as "sms",
+        LMS             as "lms",
+        MMS           as "mms",
+        NOTICE               as "notice",
+        FRIEND      as "friend",
+        CREATE_DE,
+        UPDATE_DE
+    FROM    COMBASICCASHLEVEL
+    WHERE
+    	1=1
+    	<if test="value != null">
+    		and LVID = #{uids}
+    	</if>
+</select>
+    
+    
+    
+    <insert id="insertBasicCashLevel"  parameterType="egovframework.com.mng.mem.service.BasicCashLevelVO">
+INSERT INTO COMBASICCASHLEVEL 
+                (   
+                	LVID	,
+                	ADMINID             ,
+                    LVNAME       ,
+                    SMS           ,
+                    LMS           ,
+                    MMS           ,
+                    NOTICE            ,
+                    FRIEND        ,
+                    CREATE_DE )
+            VALUES (
+            		CASHLEVEL_SEQ.NEXTVAL,
+                    #{userid}            ,
+                    #{lvname}        ,
+                    #{sms}          ,
+                    #{lms}          ,
+                    #{mms}          ,
+                    #{notice}      ,
+                    #{friend}   ,
+                    sysdate)
+</insert>
+    
+    <delete id="deleteBasicCashLevel"  parameterType="Integer">
+		DELETE FROM COMBASICCASHLEVEL 
+        WHERE LVID=#{lvid}
+	</delete>
+    
+    
+    
+    <update id="updateBasicCashLevel"  parameterType="egovframework.com.mng.mem.service.BasicCashLevelVO">
+    	/*등급 수정*/
+		UPDATE 
+			COMBASICCASHLEVEL 
+        SET
+           LVNAME    =#{lvname}       ,
+           SMS           = #{sms}        ,
+           LMS       = #{lms}    ,
+           MMS       = #{mms}    ,
+           NOTICE             = #{notice}          ,
+           FRIEND             = #{friend}  ,
+           UPDATE_DE       = sysdate
+        WHERE 
+        	LVID = #{lvid}
+	</update>
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+</mapper>

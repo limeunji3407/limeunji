@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="ReceiptRefusalDAO">
+
+	<resultMap id="ReceiptRefusalVO" type="egovframework.com.usr.mal.service.ReceiptRefusalVO">
+		<result property="id" column="id"/>
+		<result property="regist_date" column="regist_date"/>
+		<result property="register_id" column="register_id"/>
+		<result property="cancel_date" column="cancel_date"/>
+		<result property="cancel_id" column="cancel_id"/>	
+		<result property="reject_phone" column="reject_phone"/>		
+		<result property="sending_number" column="sending_number"/>
+		<result property="status" column="status"/>
+	</resultMap>
+	
+	<select id="rejtRcvList" parameterType="egovframework.com.usr.mal.service.ReceiptRefusalVO" resultMap="ReceiptRefusalVO">
+		 
+            SELECT  *
+              FROM  (
+            SELECT ROWNUM RNUM, ALL_LIST.*
+              FROM  (
+       
+            SELECT
+                id, regist_date, register_id, cancel_date, cancel_id, reject_phone, sending_number, status
+            FROM
+                REJECT_RECEPTION
+            WHERE
+                id>0
+                <if test='register_id != null and register_id neq ""'>
+					AND register_id = #{register_id}
+				</if>
+				<if test='userManageVOList != null and userManageVOList.size > 0'>
+					AND register_id IN
+					<foreach collection="userManageVOList" item="item" index="index" separator="," open="(" close=")">
+	                    #{item.emplyrId}
+	                </foreach>
+				</if>
+            ORDER BY
+            	status ASC, id desc
+        <include refid="status_type"></include>
+        <include refid="searchType"></include>
+        <include refid="date_type"></include>
+	<![CDATA[
+						
+        /* 구현 Sql */
+        
+                    ) ALL_LIST
+                    )
+             WHERE  RNUM  > #{firstIndex}
+               AND  RNUM <= #{firstIndex} + #{recordCountPerPage}
+    ]]>	
+	</select>
+	
+	<select id="rejtRcvListCnt" parameterType="egovframework.com.usr.mal.service.ReceiptRefusalVO" resultType="java.lang.Integer">
+		 <![CDATA[
+			SELECT COUNT(id)
+			FROM
+                REJECT_RECEPTION
+            WHERE
+                id>0
+        ]]>
+        <include refid="status_type"></include>
+        <include refid="searchType"></include>
+        <include refid="date_type"></include>
+						
+	</select>
+	
+	<sql id="searchType">
+        <if test="searchCnd != null">
+            <if test="searchCnd == 1">
+                and register_id like '%'||#{searchWrd}||'%'
+            </if>
+            <if test="searchCnd == 2">
+                and cancel_id like '%'||#{searchWrd}||'%'
+            </if>
+            <if test="searchCnd == 3">
+                and reject_phone like '%'||#{searchWrd}||'%'
+            </if>
+            <if test="searchCnd == 4">
+                and sending_number like '%'||#{searchWrd}||'%'
+            </if>
+        </if>
+    </sql>
+    
+    <sql id="date_type">
+    	<if test="searchDate != null">
+	        <if test="searchDate == 0">
+	            and regist_date BETWEEN #{searchBgnDe} and #{searchEndDe}
+	        </if>
+	        <if test="searchDate == 1">
+	            and cancel_date BETWEEN #{searchBgnDe} and #{searchEndDe}
+	        </if>
+        </if>
+    </sql>
+    
+    <sql id="status_type">
+    	<if test="status != null">
+	        <if test="status_type == 0">
+	            and status = 0
+	        </if>
+	        <if test="status_type == 1">
+	            and status = 1
+	        </if>
+        </if>
+    </sql>
+    
+    <insert id="insertReceiptrefusal">
+		INSERT INTO REJECT_RECEPTION(ID, REGISTER_ID, REJECT_PHONE, SENDING_NUMBER, STATUS)
+		VALUES (REJECT_SEQ.NEXTVAL, #{register_id}, #{reject_phone}, #{sending_number}, #{status})
+	</insert>
+    
+    <update id="deleteReceiptrefusal">
+    	UPDATE REJECT_RECEPTION
+    	SET STATUS = 2, cancel_id = #{cancel_id}, cancel_date = sysdate
+    	WHERE ID = #{id}
+    </update>
+</mapper>

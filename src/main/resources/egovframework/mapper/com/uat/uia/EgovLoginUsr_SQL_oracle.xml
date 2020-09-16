@@ -1,0 +1,564 @@
+<?xml version="1.0" encoding="UTF-8"?><!-- 
+	수정일                 수정자                          수정내용
+  =========     =======    =================================================
+  2011.8.26   	서준식     	 	SSO 로그인을 위한 쿼리 추가
+  2011.09.27    서준식              컬럼 변경 SUB_DN 을  CRTFC_DN_VALUE 로 변경
+  2011.09.28    서준식              컬럼 변경 entrprsmber_id 을  ENTRPRS_MBER_ID 로 변경
+-->
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="LoginUsr">
+
+	<!-- 로그인 처리를 위한 resultMap -->
+	<resultMap id="login" type="egovframework.com.cmm.LoginVO">
+		<result property="id" column="id"/>
+		<result property="name" column="name"/>
+		<result property="ihidNum" column="ihidNum"/>
+		<result property="email" column="email"/>
+		<result property="password" column="password"/>
+		<result property="userSe" column="userSe"/>
+		<result property="orgnztId" column="orgnztId"/>
+		<result property="uniqId" column="uniqId"/>		
+		<result property="sms" column="sms"/>	
+		<result property="lms" column="lms"/>	
+		<result property="mms" column="mms"/>	
+		<result property="nms" column="nms"/>	
+		<result property="fms" column="fms"/>	
+		<result property="sms_role" column="sms_role"/>
+		<result property="lms_role" column="lms_role"/>
+		<result property="mms_role" column="mms_role"/>
+		<result property="noti_role" column="noti_role"/>
+		<result property="notilms_role" column="notilms_role"/>
+		<result property="fri_role" column="fri_role"/>
+		<result property="frilms_role" column="frilms_role"/>
+		<result property="frimms_role" column="frimms_role"/>
+		<result property="mo_role" column="mo_role"/>
+		<result property="partg_role" column="partg_role"/>
+		<result property="use_status" column="use_status"/>
+		<result property="adr_role" column="adr_role"/>
+		<result property="ip" column="ip"/>
+		<result property="callnum" column="callnum"/>
+		<result property="phonnum" column="phonnum"/>
+		<result property="sender_key" column="sender_key"/>
+	</resultMap>
+	
+	<!-- 아이디 찾기를 위한 resultMap -->
+	<resultMap id="id" type="egovframework.com.cmm.LoginVO">
+		<result property="id" column="id"/>
+	</resultMap>
+	
+	<!-- 비밀번호 처리를 위한 resultMap -->
+	<resultMap id="password" type="egovframework.com.cmm.LoginVO">
+		<result property="password" column="password"/>
+	</resultMap>
+	
+	<!-- SSO용 ESNTL_ID를 이용한 로그인(2011.8.26) -->
+	
+	<select id="ssoLoginByEsntlId" resultMap="login">
+		<!-- 일반회원 -->
+		<if test="userSe != null and userSe == 'GNR'">
+			
+			SELECT mber_id AS id
+			     , mber_nm AS name
+			     , ihidNum AS ihidNum
+			     , password AS password
+			     , mber_email_adres AS email
+			     , 'GNR' AS userSe
+			     , '-' AS orgnztId
+			     , ESNTL_ID AS uniqId
+			  FROM COMTNGNRLMBER
+			 WHERE ESNTL_ID = #{uniqId}
+			   AND mber_sttus = 'P'
+			
+		</if>
+		<!-- 기업회원 -->
+		<if test="userSe != null and userSe == 'ENT'">
+			
+			SELECT ENTRPRS_MBER_ID AS id
+			     , cmpny_nm AS name
+			     , entrprs_mber_password AS password
+			     , bizrno AS ihidNum
+			     , applcnt_email_adres AS email
+			     , 'ENT' AS userSe
+			     , '-' AS orgnztId
+			     , esntl_id AS uniqId
+			  FROM COMTNENTRPRSMBER
+			 WHERE ESNTL_ID = #{uniqId}
+			   AND entrprs_mber_sttus = 'P'
+			
+		</if>
+		<!-- 업무사용자 -->
+		<if test="userSe != null and userSe == 'USR'">
+			
+			SELECT emplyr_id AS id
+			     , user_nm AS name
+			     , password AS password
+			     , ihidnum AS ihidNum
+			     , email_adres AS email
+			     , 'USR' AS userSe
+			     , orgnzt_id AS orgnztId
+			     , esntl_id AS uniqId
+			  FROM COMTNEMPLYRINFO
+			 WHERE ESNTL_ID = #{uniqId}
+			   AND emplyr_sttus_code = 'P'
+			
+		</if>
+	</select>
+	
+	<!-- 로그인 처리를 위한 resultMap -->
+	<resultMap id="lock" type="egovframework.com.cmm.LoginVO">
+		<result property="lock_dt" column="lock_dt"/>
+	</resultMap>
+	<select id="getLockDt" resultMap="lock">
+			/*락 체크*/
+			 SELECT 
+				CASE 
+					WHEN to_date(to_char(lock_dt+30/24/60,'YYYY-MM-DD hh24:mi:ss'),'YYYY-MM-DD hh24:mi:ss') > sysdate then 'Y'
+					ELSE 'N'
+				END lock_dt
+			 FROM COMTNEMPLYRINFO e
+			 WHERE e.emplyr_id = #{id}
+			 AND e.password = #{password}
+	</select>
+	
+	<resultMap id="passwordDt" type="egovframework.com.cmm.LoginVO">
+		<result property="password_dt" column="password_dt"/>
+	</resultMap>
+	<select id="getPasswordDt" resultMap="passwordDt">
+			/*비밀번호 3개월 체크*/
+			 SELECT
+				CASE 
+					WHEN to_date(to_char(SUB.DT+90,'YYYY-MM-DD hh24:mi:ss'),'YYYY-MM-DD hh24:mi:ss') > sysdate then 'Y'
+					ELSE 'N'
+				END password_dt
+			FROM(
+				 SELECT 
+					CASE 
+						WHEN PASSWORD_DT IS NULL then SBSCRB_DE
+						ELSE PASSWORD_DT
+					END DT
+				 FROM 
+				 	COMTNEMPLYRINFO e
+				 WHERE 
+				 	e.emplyr_id = #{id}
+				 	AND e.password = #{password}
+			) SUB
+	</select>
+	
+	
+	<!-- 일반 로그인 -->
+	<select id="actionLogin" resultMap="login">
+			SELECT 'USR' AS userSe
+				 , e.emplyr_id AS id
+			     , e.user_nm AS name
+			     , e.password AS password
+			     , e.ihidnum AS ihidNum
+			     , e.email_adres AS email
+			     , e.orgnzt_id AS orgnztId
+			     , e.esntl_id AS uniqId
+			     , e.sms
+			     , e.lms
+			     , e.mms
+			     , e.nms
+			     , e.fms
+			     , e.sms_role
+			     , e.lms_role
+			     , e.mms_role
+			     , e.noti_role
+			     , e.notilms_role
+			     , e.fri_role
+			     , e.frilms_role
+			     , e.frimms_role
+			     , e.mo_role
+			     , e.partg_role
+			     , e.use_status
+			     , e.adr_role
+                 , e.ip
+                 , o.callnum
+                 , o.phonnum
+                 , s.sender_key
+			 FROM COMTNEMPLYRINFO e left join COMTNORGNZTINFO o on e.orgnzt_id = o.orgnzt_id left join sender_key s on s.part_id = e.orgnzt_id
+			 WHERE e.emplyr_id = #{id}
+			 AND e.password = #{password}
+	</select>
+	<select id="getMsgPrice" resultType="egovframework.com.cmm.EgovMsgLinePriceVO">
+			SELECT 
+				SMS, 
+				LMS, 
+				MMS,
+				NOTICE,
+				FRIEND_TXT AS friendTxt,
+                FRIEND_IMG AS friendImg
+			FROM 
+				COMMSGLINEPRICE 
+			WHERE 
+				ROWNUM = 1
+	</select>
+	
+	<select id="mngCheck" resultType="Integer">
+			SELECT count(*)
+			  FROM COMTNEMPLYRINFO
+			 WHERE emplyr_id = #{id}
+			   AND ORGNZT_ID = 'ORGNZT_0000000000000'
+	</select>
+	
+	<!-- 인증서 로그인 -->
+	<select id="actionCrtfctLogin" resultMap="login">
+		
+		SELECT emplyr_id AS id
+		     , user_nm AS name
+		     , password AS password
+		     , ihidnum AS ihidNum
+		     , email_adres AS email
+		     , 'USR' AS userSe
+		     , orgnzt_id AS orgnztId
+		     , esntl_id AS uniqId
+		  FROM COMTNEMPLYRINFO
+		 WHERE CRTFC_DN_VALUE = #{dn}
+		
+	</select>
+	
+	<!-- 아이디 찾기 -->
+	<select id="searchId" resultMap="id">
+		<!-- 일반회원 -->
+		<if test="userSe != null and userSe == 'GNR'">
+			
+			SELECT mber_id AS id
+			  FROM COMTNGNRLMBER
+			 WHERE mber_nm = #{name}
+			   AND mber_email_adres = #{email}
+			   AND mber_sttus = 'P'
+			
+		</if>
+		<!-- 기업회원 -->
+		<if test="userSe != null and userSe == 'ENT'">
+			
+			SELECT ENTRPRS_MBER_ID AS id
+			  FROM COMTNENTRPRSMBER
+			 WHERE cmpny_nm = #{name}
+			   AND applcnt_email_adres = #{email}
+			   AND entrprs_mber_sttus = 'P'
+			
+		</if>
+		<!-- 업무사용자 -->
+		<if test="userSe != null and userSe == 'USR'">
+			
+			SELECT emplyr_id AS id
+			  FROM COMTNEMPLYRINFO
+			 WHERE user_nm = #{name}
+			   AND email_adres = #{email}
+			   AND emplyr_sttus_code = 'P'
+			
+		</if>
+	</select>
+	
+	<!-- 비밀번호 찾기 -->
+	<select id="searchPassword" resultMap="password">
+		<!-- 일반회원 -->
+		<if test="userSe != null and userSe == 'GNR'">
+			
+			SELECT password AS password
+			  FROM COMTNGNRLMBER
+			 WHERE mber_id = #{id}
+			   AND mber_nm = #{name}
+			   AND mber_email_adres = #{email}
+			   AND password_hint = #{passwordHint}
+			   AND password_cnsr = #{passwordCnsr}
+			   AND mber_sttus = 'P'
+			
+		</if>
+		<!-- 기업회원 -->
+		<if test="userSe != null and userSe == 'ENT'">
+			
+			SELECT entrprs_mber_password AS password
+			  FROM COMTNENTRPRSMBER
+			 WHERE ENTRPRS_MBER_ID = #{id}
+			   AND cmpny_nm = #{name}
+			   AND applcnt_email_adres = #{email}
+			   AND entrprs_mber_password_hint = #{passwordHint}
+			   AND entrprs_mber_password_cnsr = #{passwordCnsr}
+			   AND entrprs_mber_sttus = 'P'
+			
+		</if>
+		<!-- 업무사용자 -->
+		<if test="userSe != null and userSe == 'USR'">
+			
+			SELECT password AS password
+			  FROM COMTNEMPLYRINFO
+			 WHERE emplyr_id = #{id}
+			   AND user_nm = #{name}
+			   AND email_adres = #{email}
+			   AND password_hint = #{passwordHint}
+			   AND password_cnsr = #{passwordCnsr}
+			   AND emplyr_sttus_code = 'P'
+			
+		</if>
+	</select>
+	
+	<!-- 변경된 비밀번호를 저장 -->
+	<update id="updatePassword">
+		<!-- 일반회원 -->
+		<if test="userSe != null and userSe == 'GNR'">
+			
+			UPDATE COMTNGNRLMBER
+			   SET password = #{password}
+			 WHERE mber_id = #{id}
+			
+		</if>
+		<!-- 기업회원 -->
+		<if test="userSe != null and userSe == 'ENT'">
+			
+			UPDATE COMTNENTRPRSMBER
+			   SET entrprs_mber_password = #{password}
+			 WHERE ENTRPRS_MBER_ID = #{id}
+			
+		</if>
+		<!-- 업무사용자 -->
+		<if test="userSe != null and userSe == 'USR'">
+			
+			UPDATE COMTNEMPLYRINFO
+			   SET password = #{password}, password_dt = sysdate
+			 WHERE emplyr_id = #{id}
+			
+		</if>
+	</update>
+	
+	<!-- 로그인인증제한 조회 -->
+	<select id="selectLoginIncorrect" resultType="egovMap">
+	<!-- 일반회원 -->
+	<if test="userSe != null and userSe == 'GNR'">
+	<![CDATA[
+	SELECT  MBER_ID AS USER_ID
+         ,  PASSWORD AS USER_PW
+	     ,  MBER_NM AS USER_NM
+	     ,  ESNTL_ID AS UNIQ_ID
+	     ,  NVL(LOCK_AT,'N') LOCK_AT
+	     ,  NVL(LOCK_CNT,0) AS LOCK_CNT
+      FROM  COMTNGNRLMBER
+	 WHERE  MBER_ID = #{id} 
+	]]>
+	</if>
+	<!-- 기업회원 -->
+	<if test="userSe != null and userSe == 'ENT'">
+	<![CDATA[
+	SELECT  ENTRPRS_MBER_ID AS USER_ID
+         ,  ENTRPRS_MBER_PASSWORD  AS USER_PW
+	     ,  CMPNY_NM AS USER_NM
+	     ,  ESNTL_ID AS UNIQ_ID
+	     ,  NVL(LOCK_AT,'N') LOCK_AT
+	     ,  NVL(LOCK_CNT,0) AS LOCK_CNT
+      FROM  COMTNENTRPRSMBER
+	 WHERE  ENTRPRS_MBER_ID = #{id} 
+	]]>
+	</if>
+	<!-- 업무사용자 -->
+	<if test="userSe != null and userSe == 'USR'">
+	<![CDATA[
+	SELECT  EMPLYR_ID AS USER_ID
+         ,  PASSWORD AS USER_PW
+	     ,  USER_NM AS USER_NM
+	     ,  ESNTL_ID AS UNIQ_ID
+	     ,  NVL(LOCK_AT,'N') LOCK_AT
+	     ,  NVL(LOCK_CNT,0) AS LOCK_CNT
+      FROM  COMTNEMPLYRINFO
+	 WHERE  EMPLYR_ID = #{id} 
+	]]>
+	</if>
+	</select>
+
+	<!-- 로그인인증제한 변경 > 일반회원 -->
+	<update id="updateLoginIncorrectGNR">
+		<!-- LOCK 해제 -->
+		<if test="@egovframework.com.cmm.util.EgovMybaitsUtil@isEquals(updateAt,'E')">
+			<![CDATA[
+			UPDATE  COMTNGNRLMBER
+			   SET  LOCK_AT = NULL
+			     ,  LOCK_CNT  = NULL
+			     ,  LOCK_LAST_PNTTM = NULL     
+			   WHERE MBER_ID = #{id}
+			]]>
+		</if>
+		<!-- LOCK 설정 -->
+		<if test="@egovframework.com.cmm.util.EgovMybaitsUtil@isEquals(updateAt,'L')">
+			<![CDATA[
+			UPDATE  COMTNGNRLMBER
+			   SET  LOCK_AT = 'Y'
+			     ,  LOCK_CNT  = LOCK_CNT+1
+			     ,  LOCK_LAST_PNTTM = sysdate
+		      WHERE MBER_ID = #{id}
+			]]>
+		</if>
+		<!-- LOCK 카운트 설정 -->
+		<if test="@egovframework.com.cmm.util.EgovMybaitsUtil@isEquals(updateAt,'C')">
+			<![CDATA[
+			UPDATE  COMTNGNRLMBER
+			   SET  LOCK_CNT  = NVL(LOCK_CNT,0)+1
+			     ,  LOCK_LAST_PNTTM = sysdate     
+			   WHERE MBER_ID = #{id}
+			]]>
+		</if>
+	</update>
+	
+	<!-- 로그인인증제한 변경 > 기업사용자 -->
+	<update id="updateLoginIncorrectENT">
+		<!-- LOCK 해제 -->
+		<if test="@egovframework.com.cmm.util.EgovMybaitsUtil@isEquals(updateAt,'E')">
+			<![CDATA[
+			UPDATE  COMTNENTRPRSMBER
+			   SET  LOCK_AT = NULL
+			     ,  LOCK_CNT  = NULL
+			     ,  LOCK_LAST_PNTTM = NULL     
+			   WHERE ENTRPRS_MBER_ID = #{id}
+			]]>
+		</if>
+		<!-- LOCK 설정 -->
+		<if test="@egovframework.com.cmm.util.EgovMybaitsUtil@isEquals(updateAt,'L')">
+			<![CDATA[
+			UPDATE  COMTNENTRPRSMBER
+			   SET  LOCK_AT = 'Y'
+			     ,  LOCK_CNT  = LOCK_CNT+1
+			     ,  LOCK_LAST_PNTTM = sysdate
+			   WHERE ENTRPRS_MBER_ID = #{id}
+			]]>
+		</if>
+		<!-- LOCK 카운트 설정 -->
+		<if test="@egovframework.com.cmm.util.EgovMybaitsUtil@isEquals(updateAt,'C')">
+			<![CDATA[
+			UPDATE  COMTNENTRPRSMBER
+			   SET  LOCK_CNT  = NVL(LOCK_CNT,0)+1
+			     ,  LOCK_LAST_PNTTM = sysdate     
+			   WHERE ENTRPRS_MBER_ID = #{id}
+			]]>
+		</if>
+	</update>
+
+	<!-- 로그인인증제한 변경 > 업무사용자 -->
+	<update id="updateLoginIncorrectUSR">
+		<!-- LOCK 해제 -->
+		<if test="@egovframework.com.cmm.util.EgovMybaitsUtil@isEquals(updateAt,'E')">
+			<![CDATA[
+			UPDATE  COMTNEMPLYRINFO
+			   SET  LOCK_AT = NULL
+			     ,  LOCK_CNT  = NULL
+			     ,  LOCK_LAST_PNTTM = NULL     
+			   WHERE EMPLYR_ID = #{id}
+			]]>
+		</if>
+		<!-- LOCK 설정 -->
+		<if test="@egovframework.com.cmm.util.EgovMybaitsUtil@isEquals(updateAt,'L')">
+			<![CDATA[
+			UPDATE  COMTNEMPLYRINFO
+			   SET  LOCK_AT = 'Y'
+			     ,  LOCK_CNT  = LOCK_CNT+1
+			     ,  LOCK_LAST_PNTTM = sysdate
+			   WHERE EMPLYR_ID = #{id}
+			]]>
+		</if>
+		<!-- LOCK 카운트 설정 -->
+		<if test="@egovframework.com.cmm.util.EgovMybaitsUtil@isEquals(updateAt,'C')">
+			<![CDATA[
+			UPDATE  COMTNEMPLYRINFO
+			   SET  LOCK_CNT  = NVL(LOCK_CNT,0)+1
+			     ,  LOCK_LAST_PNTTM = sysdate     
+			   WHERE EMPLYR_ID = #{id}
+			]]>
+		</if>
+	</update>
+	
+	<update id="passwordFailReset">
+		<!-- 일반회원 -->
+		<if test="userSe != null and userSe == 'GNR'">
+			
+			UPDATE COMTNGNRLMBER
+			SET PWFAIL=0
+			 WHERE mber_id = #{id}
+			   AND mber_sttus = 'P'
+			
+		</if>
+		<!-- 기업회원 -->
+		<if test="userSe != null and userSe == 'ENT'">
+			
+			UPDATE COMTNENTRPRSMBER
+			SET PWFAIL=0
+			 WHERE ENTRPRS_MBER_ID = #{id}
+			   AND entrprs_mber_sttus = 'P'
+			
+		</if>
+		<!-- 업무사용자 -->
+		<if test="userSe != null and userSe == 'USR'">
+			
+			UPDATE COMTNEMPLYRINFO
+			SET PWFAIL=0, LOCK_DT = null
+			 WHERE emplyr_id = #{id}
+			   AND use_status = 'Y'
+			
+		</if>
+	</update>
+	
+	<update id="passwordFail">
+		<!-- 일반회원 -->
+		<if test="userSe != null and userSe == 'GNR'">
+			
+			UPDATE COMTNGNRLMBER
+			SET PWFAIL=PWFAIL+1
+			 WHERE mber_id = #{id}
+			   AND mber_sttus = 'P'
+			
+		</if>
+		<!-- 기업회원 -->
+		<if test="userSe != null and userSe == 'ENT'">
+			
+			UPDATE COMTNENTRPRSMBER
+			SET PWFAIL=PWFAIL+1
+			 WHERE ENTRPRS_MBER_ID = #{id}
+			   AND entrprs_mber_sttus = 'P'
+			
+		</if>
+		<!-- 업무사용자 -->
+		<if test="userSe != null and userSe == 'USR'">
+			
+			UPDATE COMTNEMPLYRINFO
+			SET PWFAIL=PWFAIL+1
+			 WHERE emplyr_id = #{id}
+			   AND use_status = 'Y'
+			
+		</if>
+	</update>
+	
+	<update id="lockChange">
+		/*비밀번호 5번 틀릴시 수정*/
+		UPDATE COMTNEMPLYRINFO
+		SET LOCK_DT = SYSDATE
+		 WHERE emplyr_id = #{id}
+	</update>
+	
+	<select id="pwFailSerch" resultType="String">
+		<!-- 일반회원 -->
+		<if test="userSe != null and userSe == 'GNR'">
+			
+			SELECT PWFAIL
+			  FROM COMTNGNRLMBER
+			 WHERE mber_id = #{id}
+			   AND mber_sttus = 'P'
+			
+		</if>
+		<!-- 기업회원 -->
+		<if test="userSe != null and userSe == 'ENT'">
+			
+			SELECT PWFAIL
+			  FROM COMTNENTRPRSMBER
+			 WHERE ENTRPRS_MBER_ID = #{id}
+			   AND entrprs_mber_sttus = 'P'
+			
+		</if>
+		<!-- 업무사용자 -->
+		<if test="userSe != null and userSe == 'USR'">
+			
+			SELECT PWFAIL
+			  FROM COMTNEMPLYRINFO
+			 WHERE emplyr_id = #{id}
+			   AND use_status = 'Y'
+			
+		</if>
+	</select>
+</mapper>

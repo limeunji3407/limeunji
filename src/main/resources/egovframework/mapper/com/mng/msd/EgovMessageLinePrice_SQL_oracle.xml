@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?><!--Converted at: Wed May 11 15:51:02 KST 2016-->
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="MessageLinePriceDAO">
+
+
+    <resultMap id="msglineprice" type="egovframework.com.mng.msd.service.MessageLinePriceVO">
+<result property="userid" column="USERID"/>
+<result property="sms" column="SMS"/>
+<result property="lms" column="LMS"/>
+<result property="mms" column="MMS"/>
+<result property="notice" column="NOTICE"/>
+<result property="friend_txt" column="FRIEND_TXT"/>
+<result property="friend_img" column="FRIEND_IMG"/>
+<result property="sms_g" column="SMS_G"/>
+<result property="lms_g" column="LMS_G"/>
+<result property="mms_g" column="MMS_G"/></resultMap>
+
+  
+
+ 
+
+<select id="selectMessageLinePrice_S" resultMap="msglineprice">
+	SELECT SMS,
+	     LMS,
+	     MMS,
+	     NOTICE,
+	     FRIEND_TXT,
+	     FRIEND_IMG,
+	     SMS_G,
+	     LMS_G,
+	     MMS_G
+	FROM COMMSGLINEPRICE
+</select>
+
+<insert id="insertMessageLinePrice_S"  parameterType="egovframework.com.mng.msd.service.MessageLinePriceVO">
+	INSERT INTO COMMSGLINEPRICE (SMS, LMS, MMS, notice, friend_txt, friend_img, sms_g, lms_g, mms_g)
+    values(#{sms},#{lms},#{mms},#{notice},#{friend_txt},#{friend_img},#{sms_g}, #{lms_g}, #{mms_g})
+</insert>
+
+ <select id="countRole" resultType="Integer">
+	SELECT COUNT(SEQ)
+	FROM COMMSGLINEPRICE
+</select>
+	
+<update id="updateMessageLinePrice" parameterType="egovframework.com.mng.msd.service.MessageLinePriceVO">
+	UPDATE COMMSGLINEPRICE
+	SET SMS=#{sms}, LMS=#{lms}, MMS=#{mms}, notice=#{notice}, friend_txt=#{friend_txt}, friend_img=#{friend_img}, sms_g=#{sms_g}, lms_g=#{lms_g}, mms_g=#{mms_g}
+	WHERE SEQ = 1
+</update>
+</mapper>

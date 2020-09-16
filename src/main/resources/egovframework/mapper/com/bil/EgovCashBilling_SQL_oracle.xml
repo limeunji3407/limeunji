@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="CashBillingDAO">
+
+	<select id="cashBillingList" parameterType="egovframework.com.bil.service.CashBillingVO" resultType="egovframework.com.bil.service.CashBillingVO">
+		SELECT
+		    seq, cash, leftcash, ordercash, msgtype, create_dt, status, userid
+		FROM
+		    COMCASHBILLING
+		WHERE
+		    userid = #{userid}
+	</select>
+	
+	<select id="cashBillingSelectOne" resultType="egovframework.com.bil.service.CashBillingVO">
+		SELECT
+		    seq, cash, leftcash, ordercash, msgtype, create_dt, status, userid
+		FROM
+		    COMCASHBILLING
+		WHERE
+		    seq = #{seq} and userid = #{userid}
+	</select>
+	
+	<insert id="cashBillingInsert">
+		INSERT INTO COMCASHBILLING(seq, cash, leftcash, ordercash, msgtype, create_dt, status, userid)
+		VALUES (cash_seq.NEXTVAL, #{cash}, #{leftcash}, #{ordercash}, #{msgtype}, #{create_dt}, #{status}, #{userid})
+	</insert>
+	
+	<update id="cashBillingUpdate">
+		UPDATE COMCASHBILLING
+		SET cash = #{cash}, leftcash = #{leftcash}, ordercash = #{ordercash}, msgtype = #{msgtype}, create_dt = #{create_dt}, status = #{status}
+		WHERE userid = #{userid} and seq = #{seq}
+	</update>
+	
+	<delete id="cashBillingDelete">
+		DELETE FROM COMCASHBILLING
+		WHERE userid = #{userid} and seq = #{seq}
+	</delete>
+</mapper>

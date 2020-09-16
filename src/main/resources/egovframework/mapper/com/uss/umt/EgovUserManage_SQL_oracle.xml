@@ -1,0 +1,830 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="userManageDAO">
+
+<resultMap type="egovframework.com.mng.mem.service.CashVO" id="cash">
+	<result property="pay_code" column="pay_code" />
+	<result property="pay_fee" column="pay_fee" />
+</resultMap>
+
+    <select id="selectUserList_S" resultType="egovMap">
+SELECT * FROM ( SELECT rownum rn, TB.* FROM (
+    SELECT
+        'USR03'               as "userTy",
+        EMPLYR_ID             as "userId",
+        USER_NM             as "userNm",
+        MBTLNUM           as "moblphonNo",
+        GROUP_ID              as "groupId",
+        EMPLYR_STTUS_CODE     as "sttus",
+        SBSCRB_DE             as "sbscrbDe",
+        OFFM_TELNO            as "offmTelno",
+        OFCPS_NM              as "ofcpsNm",
+        SMS+SMS_ADD	as "sms",
+        LMS+lms_add as "lms",
+        MMS+mms_add as "mms",
+        NMS+nms_add as "nms",
+        FMS+fms_add as "fms",
+        LOCK_AT				  as "lockAt",
+        ORGNZT_ID               as "orgId",
+        MEMO as "memo"
+    FROM    COMTNEMPLYRINFO
+        WHERE 1=1
+        <if test='sbscrbSttus != null and sbscrbSttus neq "0" and sbscrbSttus neq ""'>
+            EMPLYR_STTUS_CODE LIKE  #{sbscrbSttus}
+        </if>
+        <if test="@egovframework.com.cmm.util.EgovMybaitsUtil@isNotEmpty(searchKeyword)">
+	        <if test="searchCondition == 0">AND
+	            EMPLYR_ID LIKE #{searchKeyword}
+	        </if>
+	        <if test="searchCondition == 1">AND
+	            USER_NM LIKE '%' ||#{searchKeyword}|| '%'
+	        </if>
+        </if>
+        <![CDATA[
+        ORDER BY 12 DESC
+        ) TB ) WHERE rn BETWEEN #{firstIndex} + 1 AND #{firstIndex} + #{recordCountPerPage}
+        ]]>
+    </select>
+    
+    <select id="selectUserListTotCnt_S" resultType="int">
+            SELECT COUNT(1) totcnt
+            FROM    COMTNEMPLYRINFO
+            WHERE 1=1
+            <if test='sbscrbSttus != null and sbscrbSttus neq "0" and sbscrbSttus neq ""'>
+                AND EMPLYR_STTUS_CODE LIKE  #{sbscrbSttus}
+            </if>
+            <if test="@egovframework.com.cmm.util.EgovMybaitsUtil@isNotEmpty(searchKeyword)">
+            <if test="searchCondition == 0">AND
+                 EMPLYR_ID LIKE #{searchKeyword}
+            </if>
+            <if test="searchCondition == 1">AND
+                 USER_NM LIKE '%' ||#{searchKeyword}|| '%'
+            </if>
+            </if>
+    </select>
+    
+    <select id="selectUserList_M" resultType="egovframework.com.uss.umt.service.UserManageVO">
+    	SELECT
+    		c.EMPLYR_ID emplyrId,
+    		c.ORGNZT_ID orgnztId,
+    		c.USER_NM emplyrNm,
+    		c.OFFM_TELNO offmTelno,
+    		c.MBTLNUM moblphonNo,
+    		c.EMPLYR_STTUS_CODE emplyrSttusCode,
+    		c.OFCPS_NM ofcpsNm,
+    		c.SMS+c.SMS_ADD sms,
+    		c.LMS+c.LMS_ADD lms,
+    		c.MMS+c.MMS_ADD mms,
+    		c.NMS+c.nms_add as "nms",
+        	c.FMS+c.fms_add as "fms",
+        	c.MEMO memo,
+        	c.USE_STATUS useStatus,
+        	c.SBSCRB_DE sbscrbDe,
+        	p.ORGNZT_NM orgnztNm,
+        	(SELECT LVNAME FROM COMBASICCASHLEVEL WHERE LVID = c.LVID) as lvName
+        FROM
+        	COMTNEMPLYRINFO c INNER JOIN COMTNORGNZTINFO p
+        		ON c.ORGNZT_ID = p.ORGNZT_ID
+        WHERE 1=1
+        <if test="!orgnztId.equals('ORGNZT_0000000000000')">
+        	and c.ORGNZT_ID = #{orgnztId}
+        </if>
+    </select>
+    
+    <select id="selectUserListNo" resultType="egovframework.com.uss.umt.service.UserManageVO">
+    	SELECT
+    		c.EMPLYR_ID emplyrId,
+    		c.ORGNZT_ID orgnztId,
+    		c.USER_NM emplyrNm,
+    		c.OFFM_TELNO offmTelno,
+    		c.MBTLNUM moblphonNo,
+    		c.EMPLYR_STTUS_CODE emplyrSttusCode,
+    		c.OFCPS_NM ofcpsNm,
+    		c.SMS+c.SMS_ADD sms,
+    		c.LMS+c.LMS_ADD lms,
+    		c.MMS+c.MMS_ADD mms,
+    		c.NMS+c.nms_add as "nms",
+        	c.FMS+c.fms_add as "fms",
+        	c.MEMO memo,
+        	c.USE_STATUS useStatus,
+        	c.SBSCRB_DE sbscrbDe,
+        	p.ORGNZT_NM orgnztNm
+        FROM
+        	COMTNEMPLYRINFO c INNER JOIN COMTNORGNZTINFO p
+        		ON c.ORGNZT_ID = p.ORGNZT_ID
+        WHERE
+        	c.USE_STATUS != 'R'
+        <if test="!orgnztId.equals('ORGNZT_0000000000000')">
+        	and c.ORGNZT_ID = #{orgnztId}
+        </if>
+    </select>
+    
+    <select id="selectUserListTotal" resultType="egovframework.com.uss.umt.service.UserManageVO">
+    	SELECT
+    		c.EMPLYR_ID emplyrId,
+    		c.ORGNZT_ID orgnztId,
+    		c.USER_NM emplyrNm,
+    		c.OFFM_TELNO offmTelno,
+    		c.MBTLNUM moblphonNo,
+    		c.EMPLYR_STTUS_CODE emplyrSttusCode,
+    		c.OFCPS_NM ofcpsNm,
+    		c.SMS+c.SMS_ADD sms,
+    		c.LMS+c.LMS_ADD lms,
+    		c.MMS+c.MMS_ADD mms,
+    		c.NMS+c.nms_add as "nms",
+        	c.FMS+c.fms_add as "fms",
+        	c.MEMO memo,
+        	c.USE_STATUS useStatus,
+        	c.SBSCRB_DE sbscrbDe,
+        	p.ORGNZT_NM orgnztNm
+        FROM
+        	COMTNEMPLYRINFO c INNER JOIN COMTNORGNZTINFO p
+        		ON c.ORGNZT_ID = p.ORGNZT_ID
+        WHERE
+        	c.ORGNZT_ID = #{orgnztId}
+    </select>
+    
+    <insert id="mngInsertUser">
+    	INSERT INTO COMTNEMPLYRINFO (
+    		EMPLYR_ID,
+    		ORGNZT_ID,
+    		USER_NM,
+    		PASSWORD,
+    		OFFM_TELNO,
+    		MBTLNUM,
+    		OFCPS_NM,
+    		EMPLYR_STTUS_CODE,
+    		SBSCRB_DE,
+    		SMS,
+    		LMS,
+    		MMS,
+    		NMS,
+    		FMS,
+    		MEMO,
+    		SMS_ROLE,
+    		LMS_ROLE,
+    		MMS_ROLE,
+    		NOTI_ROLE,
+    		NOTILMS_ROLE,
+    		FRI_ROLE,
+    		FRILMS_ROLE,
+    		FRIMMS_ROLE,
+    		MO_ROLE,
+    		PARTG_ROLE,
+    		USE_STATUS,
+    		IP,
+    		ADR_ROLE,
+    		SUBIDUSE,
+    		SUBID
+   		)
+    	VALUES (
+    		#{emplyrId},
+    		#{orgnztId},
+    		#{emplyrNm},
+    		#{password},
+    		#{offmTelno},
+    		#{moblphonNo},
+    		#{ofcpsNm},
+    		#{emplyrSttusCode},
+    		sysdate,
+    		#{sms},
+    		#{lms},
+    		#{mms},
+    		#{nms},
+    		#{fms},
+    		#{memo},
+    		#{smsRole},
+    		#{lmsRole},
+    		#{mmsRole},
+    		#{notiRole},
+    		#{notilmsRole},
+    		#{friRole},
+    		#{frilmsRole},
+    		#{frimmsRole},
+    		#{moRole},
+    		#{partgRole},
+    		#{useStatus},
+    		#{ip},
+    		#{adrRole},
+    		#{subiduse},
+    		#{subid}
+   		)
+    </insert>
+    
+    <insert id="insertUser_S">
+        
+            INSERT INTO COMTNEMPLYRINFO 
+                (   ESNTL_ID             ,
+                    EMPLYR_ID           ,
+                    USER_NM           ,
+                    PASSWORD            ,
+                    PASSWORD_HINT       ,
+                    PASSWORD_CNSR       ,
+                    EMPL_NO             ,
+                    IHIDNUM             ,
+                    SEXDSTN_CODE        ,
+                    BRTHDY                ,
+                    AREA_NO             ,
+                    HOUSE_MIDDLE_TELNO    ,
+                    HOUSE_END_TELNO       ,
+                    FXNUM               ,
+                    HOUSE_ADRES           ,
+                    DETAIL_ADRES        ,
+                    ZIP                 ,
+                    OFFM_TELNO          ,
+                    MBTLNUM         ,
+                    EMAIL_ADRES         ,
+                    OFCPS_NM            ,
+                    GROUP_ID            ,
+                    ORGNZT_ID           ,
+                    PSTINST_CODE          ,
+                    EMPLYR_STTUS_CODE   ,
+                    SBSCRB_DE           ,
+                    CRTFC_DN_VALUE,
+                    SMS,
+                    LMS,
+                    MMS,
+                    NMS,
+                    FMS,
+                    MEMO              )
+            VALUES (
+                    #{uniqId}            ,
+                    #{emplyrId}          ,
+                    #{emplyrNm}          ,
+                    #{password}          ,
+                    #{passwordHint}      ,
+                    #{passwordCnsr}      ,                   
+                    #{emplNo}            ,
+                    #{ihidnum}           ,
+                    #{sexdstnCode}       ,
+                    #{brth}              ,
+                    #{areaNo}            ,
+                    #{homemiddleTelno}   ,
+                    #{homeendTelno}      ,
+                    #{fxnum}             ,
+                    #{homeadres}         ,
+                    #{detailAdres}       ,
+                    #{zip}               ,
+                    #{offmTelno}         ,
+                    #{moblphonNo}        ,
+                    #{emailAdres}        ,
+                    #{ofcpsNm}           ,
+                    #{groupId}           ,
+                    #{orgnztId}          ,
+                    #{insttCode}         ,
+                    #{emplyrSttusCode}   ,
+                    sysdate           ,
+                    #{subDn},
+                    #{sms},
+                    #{lms},
+                    #{mms},
+                    #{nms},
+                    #{fms},
+                    #{memo}             )
+        
+    </insert>
+    
+    <delete id="deleteUser_S">
+        
+            DELETE FROM COMTNEMPLYRINFO 
+            WHERE ESNTL_ID=#{delId}
+        
+    </delete>
+    
+    <select id="selectUser_S" resultType="egovframework.com.uss.umt.service.UserManageVO">
+        
+            SELECT
+                ESNTL_ID           uniqId            ,
+	            EMPLYR_ID         emplyrId          ,
+	            USER_NM         emplyrNm          ,
+	            PASSWORD          password          ,
+	            PASSWORD_HINT     passwordHint      ,
+	            PASSWORD_CNSR     passwordCnsr      ,
+	            EMPL_NO           emplNo            ,
+	            IHIDNUM           ihidnum           ,
+	            SEXDSTN_CODE      sexdstnCode       ,
+	            BRTHDY              brth            ,
+	            AREA_NO           areaNo            ,
+	            HOUSE_MIDDLE_TELNO  homemiddleTelno   ,
+	            HOUSE_END_TELNO     homeendTelno      ,
+	            FXNUM             fxnum             ,
+	            HOUSE_ADRES         homeadres       ,
+	            DETAIL_ADRES      detailAdres       ,
+	            ZIP               zip               ,
+	            OFFM_TELNO        offmTelno         ,
+	            MBTLNUM       moblphonNo        ,
+	            EMAIL_ADRES       emailAdres        ,
+	            OFCPS_NM          ofcpsNm           ,
+	            GROUP_ID          groupId           ,
+	            ORGNZT_ID         orgnztId          ,
+	            PSTINST_CODE        insttCode       ,
+	            EMPLYR_STTUS_CODE emplyrSttusCode   , 
+	            SBSCRB_DE         sbscrbDe          ,
+	            CRTFC_DN_VALUE    subDn,
+	        	LOCK_AT				lockAt,
+	        	OFFM_TELNO          offmTelno,
+	        	OFCPS_NM            ofcpsNm,
+	        	MEMO memo,
+	        	SMS	sms,
+	        	LMS lms,
+	        	MMS mms,
+	        	NMS nms,
+	        	FMS fms,
+	        	SMS_ADD smsAdd,
+	        	LMS_ADD lmsAdd,
+	        	MMS_ADD mmsAdd,
+	        	NMS_ADD nmsAdd,
+	        	FMS_ADD fmsAdd,
+	        	USE_STATUS useStatus,
+	        	IP ip,
+	        	SMS_ROLE smsRole,
+	    		LMS_ROLE lmsRole,
+	    		MMS_ROLE mmsRole,
+	    		NOTI_ROLE notiRole,
+	    		NOTILMS_ROLE notilmsRole,
+	    		FRI_ROLE friRole,
+	    		FRILMS_ROLE frilmsRole,
+	    		FRIMMS_ROLE frimmsRole,
+	    		MO_ROLE moRole,
+	    		PARTG_ROLE partgRole,
+	    		ADR_ROLE adrRole,
+	    		SUBIDUSE subiduse,
+	    		SUBID subid
+        	FROM
+        		COMTNEMPLYRINFO
+            WHERE
+            	EMPLYR_ID=#{emplyrId}
+        
+    </select>
+    
+    <update id="updateUser_S">
+        
+            UPDATE COMTNEMPLYRINFO 
+            SET USER_NM           = #{emplyrNm}        ,
+                OFFM_TELNO          = #{offmTelno}       ,
+                MBTLNUM         = #{moblphonNo}      ,
+                OFCPS_NM            = #{ofcpsNm}         ,
+                EMPLYR_STTUS_CODE   = #{emplyrSttusCode} ,
+                MEMO = #{memo},
+                SMS	= #{sms},
+	        	LMS = #{lms},
+	        	MMS = #{mms},
+	        	NMS = #{nms},
+	        	FMS = #{fms},
+	        	SMS_ADD	= #{smsAdd},
+	        	LMS_ADD	= #{lmsAdd},
+	        	MMS_ADD = #{mmsAdd},
+	        	NMS_ADD = #{nmsAdd},
+	        	FMS_ADD = #{fmsAdd},
+	        	USE_STATUS = #{useStatus}
+            WHERE EMPLYR_ID = #{emplyrId}
+    </update>
+    
+    <update id="mngUpdateUser">
+            UPDATE COMTNEMPLYRINFO 
+            SET USER_NM           = #{emplyrNm}        ,
+            	ORGNZT_ID = #{orgnztId},
+                OFFM_TELNO          = #{offmTelno}       ,
+                MBTLNUM         = #{moblphonNo}      ,
+                OFCPS_NM            = #{ofcpsNm}         ,
+                EMPLYR_STTUS_CODE   = #{emplyrSttusCode} ,
+                MEMO = #{memo},
+                SMS	= #{sms},
+	        	LMS = #{lms},
+	        	MMS = #{mms},
+	        	NMS = #{nms},
+	        	FMS = #{fms},
+	        	SMS_ADD	= #{smsAdd},
+	        	LMS_ADD	= #{lmsAdd},
+	        	MMS_ADD = #{mmsAdd},
+	        	NMS_ADD = #{nmsAdd},
+	        	FMS_ADD = #{fmsAdd},
+	        	USE_STATUS = #{useStatus},
+	        	PARTG_ROLE = #{partgRole},
+	        	MO_ROLE = #{moRole},
+	        	SMS_ROLE = #{smsRole},
+	        	LMS_ROLE = #{lmsRole},
+	        	MMS_ROLE = #{mmsRole},
+	        	NOTI_ROLE = #{notiRole},
+	        	NOTILMS_ROLE = #{notilmsRole},
+	        	FRI_ROLE = #{friRole},
+	        	FRILMS_ROLE = #{frilmsRole},
+	        	FRIMMS_ROLE = #{frimmsRole},
+	        	IP = #{ip},
+	        	ADR_ROLE = #{adrRole},
+	        	SUBIDUSE = #{subiduse},
+	        	SUBID = #{subid}
+	        	<if test='!password.equals("".toString())'>
+                	, PASSWORD = #{password}
+                </if>
+            WHERE EMPLYR_ID = #{emplyrId}
+    </update>
+    
+    <select id="partMCheck" resultType="egovframework.com.uss.umt.service.UserManageVO">
+    	SELECT EMPLYR_ID
+		FROM COMTNEMPLYRINFO
+		WHERE ORGNZT_ID = #{orgnztId} and PARTG_ROLE = 'Y'
+    </select>
+    
+    <update id="mngdowndateUser">
+            UPDATE COMTNEMPLYRINFO 
+            SET
+	        	PARTG_ROLE = 'N'
+            WHERE ORGNZT_ID = #{orgnztId} and PARTG_ROLE = 'Y'
+    </update>
+    
+    <update id="updateUser_M">
+        
+            UPDATE COMTNEMPLYRINFO 
+            SET USER_NM           = #{emplyrNm}        ,
+                OFFM_TELNO          = #{offmTelno}       ,
+                MBTLNUM         = #{moblphonNo}
+                <if test='newPw != null and !newPw.equals("".toString())'>
+                	, PASSWORD = #{newPw}
+                </if>
+                <if test='ip != null and !ip.equals("".toString())'>
+                	, ip = #{ip}
+                </if>
+                <if test='ofcpsNm!=null'>
+                	, OFCPS_NM = #{ofcpsNm}
+                </if>
+            WHERE EMPLYR_ID = #{emplyrId}
+        
+    </update>
+    
+    <insert id="insertUserHistory_S">
+        
+            INSERT INTO COMTHEMPLYRINFOCHANGEDTLS 
+                (   EMPLYR_ID           ,
+                    EMPL_NO             ,
+                    SEXDSTN_CODE        ,
+                    BRTHDY                ,
+                    AREA_NO             ,
+                    HOUSE_MIDDLE_TELNO    ,
+                    HOUSE_END_TELNO       ,
+                    FXNUM               ,
+                    HOUSE_ADRES           ,
+                    DETAIL_ADRES        ,
+                    ZIP                 ,
+                    OFFM_TELNO          ,
+                    MBTLNUM         ,
+                    EMAIL_ADRES         ,
+                    GROUP_ID            ,
+                    ORGNZT_ID           ,
+                    PSTINST_CODE          ,
+                    EMPLYR_STTUS_CODE   ,
+                    ESNTL_ID             ,
+                    CHANGE_DE           )
+            SELECT 
+                    EMPLYR_ID           ,
+                    EMPL_NO             ,
+                    SEXDSTN_CODE        ,
+                    BRTHDY                ,
+                    AREA_NO             ,
+                    HOUSE_MIDDLE_TELNO    ,
+                    HOUSE_END_TELNO       ,
+                    FXNUM               ,
+                    HOUSE_ADRES           ,
+                    DETAIL_ADRES        ,
+                    ZIP                 ,
+                    OFFM_TELNO          ,
+                    MBTLNUM         ,
+                    EMAIL_ADRES         ,
+                    GROUP_ID            ,
+                    ORGNZT_ID           ,
+                    PSTINST_CODE          ,
+                    EMPLYR_STTUS_CODE   ,
+                    ESNTL_ID             ,
+                    SYSDATE
+            FROM COMTNEMPLYRINFO
+            WHERE ESNTL_ID = #{uniqId}
+        
+    </insert>
+    
+    <select id="checkIdDplct_S" resultType="int">
+        
+            SELECT COUNT(1) usedCnt
+                FROM(
+                SELECT
+                    EMPLYR_ID             userId
+                FROM    COMTNEMPLYRINFO
+                UNION ALL
+                SELECT
+                    ENTRPRS_MBER_ID        userId
+                FROM    COMTNENTRPRSMBER
+                UNION ALL
+                SELECT
+                    MBER_ID               userId
+                FROM    COMTNGNRLMBER
+                ) A
+            WHERE userId = #{checkId}
+        
+    </select>
+    
+    <update id="updatePassword_S">
+        
+            UPDATE COMTNEMPLYRINFO 
+            SET 
+                   PASSWORD   =  #{password}
+            WHERE  ESNTL_ID  = #{uniqId}
+        
+    </update>
+    
+    <select id="selectPassword_S" resultType="egovframework.com.uss.umt.service.UserManageVO">
+        
+            SELECT
+                    PASSWORD          password 
+            FROM    COMTNEMPLYRINFO
+            WHERE   ESNTL_ID=#{uniqId}
+        
+    </select>
+    
+    <update id="updateLockIncorrect">
+            UPDATE COMTNEMPLYRINFO 
+ 			   SET  LOCK_AT = NULL 
+			     ,  LOCK_CNT  = NULL 
+			     ,  LOCK_LAST_PNTTM = NULL 
+            WHERE  ESNTL_ID  = #{uniqId}
+    </update>
+    
+    
+    <insert id="insertPartUser">
+    	/*유저 사용자가 회원가입*/
+    	INSERT INTO COMTNEMPLYRINFO 
+                (   ESNTL_ID             ,
+                    EMPLYR_ID           ,
+                    USER_NM           ,
+                    PASSWORD            ,
+                    PASSWORD_HINT       ,
+                    PASSWORD_CNSR       ,
+                    EMPL_NO             ,
+                    IHIDNUM             ,
+                    SEXDSTN_CODE        ,
+                    BRTHDY                ,
+                    AREA_NO             ,
+                    HOUSE_MIDDLE_TELNO    ,
+                    HOUSE_END_TELNO       ,
+                    FXNUM               ,
+                    HOUSE_ADRES           ,
+                    DETAIL_ADRES        ,
+                    ZIP                 ,
+                    OFFM_TELNO          ,
+                    MBTLNUM         ,
+                    EMAIL_ADRES         ,
+                    OFCPS_NM            ,
+                    GROUP_ID            ,
+                    ORGNZT_ID           ,
+                    PSTINST_CODE          ,
+                    EMPLYR_STTUS_CODE   ,
+                    SBSCRB_DE           ,
+                    CRTFC_DN_VALUE 		,
+                    MEMO,
+                    SMS,
+                    LMS,
+                    MMS,
+                    NMS,
+                    FMS,
+                    LVID,
+                    USE_STATUS             )
+            VALUES (
+                    #{uniqId}            ,
+                    #{emplyrId}          ,
+                    #{emplyrNm}          ,
+                    #{password}          ,
+                    #{passwordHint}      ,
+                    #{passwordCnsr}      ,                   
+                    #{emplNo}            ,
+                    #{ihidnum}           ,
+                    #{sexdstnCode}       ,
+                    #{brth}              ,
+                    #{areaNo}            ,
+                    #{homemiddleTelno}   ,
+                    #{homeendTelno}      ,
+                    #{fxnum}             ,
+                    #{homeadres}         ,
+                    #{detailAdres}       ,
+                    #{zip}               ,
+                    #{offmTelno}         ,
+                    #{moblphonNo}        ,
+                    #{emailAdres}        ,
+                    #{ofcpsNm}           ,
+                    #{groupId}           ,
+                    #{orgnztId}          ,
+                    #{insttCode}         ,
+                    #{emplyrSttusCode}   ,
+                    sysdate           ,
+                    #{subDn}			,
+                    #{memo},
+                    (SELECT USERCASH FROM COMMSGROLE where rownum =1),
+                    (SELECT USERCASH FROM COMMSGROLE where rownum =1),
+                    (SELECT USERCASH FROM COMMSGROLE where rownum =1),
+                    (SELECT USERCASH FROM COMMSGROLE where rownum =1),
+                    (SELECT USERCASH FROM COMMSGROLE where rownum =1),
+                    #{lvId},
+                    #{useStatus}             )
+    </insert>
+    <insert id="insertPartUserAdmin">
+    	/*부서장이 등록햇을경우*/
+    	INSERT INTO COMTNEMPLYRINFO 
+                (   ESNTL_ID             ,
+                    EMPLYR_ID           ,
+                    USER_NM           ,
+                    PASSWORD            ,
+                    PASSWORD_HINT       ,
+                    PASSWORD_CNSR       ,
+                    EMPL_NO             ,
+                    IHIDNUM             ,
+                    SEXDSTN_CODE        ,
+                    BRTHDY                ,
+                    AREA_NO             ,
+                    HOUSE_MIDDLE_TELNO    ,
+                    HOUSE_END_TELNO       ,
+                    FXNUM               ,
+                    HOUSE_ADRES           ,
+                    DETAIL_ADRES        ,
+                    ZIP                 ,
+                    OFFM_TELNO          ,
+                    MBTLNUM         ,
+                    EMAIL_ADRES         ,
+                    OFCPS_NM            ,
+                    GROUP_ID            ,
+                    ORGNZT_ID           ,
+                    PSTINST_CODE          ,
+                    EMPLYR_STTUS_CODE   ,
+                    SBSCRB_DE           ,
+                    CRTFC_DN_VALUE 		,
+                    MEMO,
+                    SMS,
+                    LMS,
+                    MMS,
+                    NMS,
+                    FMS,
+                    LVID,
+                    USE_STATUS             )
+            VALUES (
+                    #{uniqId}            ,
+                    #{emplyrId}          ,
+                    #{emplyrNm}          ,
+                    #{password}          ,
+                    #{passwordHint}      ,
+                    #{passwordCnsr}      ,                   
+                    #{emplNo}            ,
+                    #{ihidnum}           ,
+                    #{sexdstnCode}       ,
+                    #{brth}              ,
+                    #{areaNo}            ,
+                    #{homemiddleTelno}   ,
+                    #{homeendTelno}      ,
+                    #{fxnum}             ,
+                    #{homeadres}         ,
+                    #{detailAdres}       ,
+                    #{zip}               ,
+                    #{offmTelno}         ,
+                    #{moblphonNo}        ,
+                    #{emailAdres}        ,
+                    #{ofcpsNm}           ,
+                    #{groupId}           ,
+                    #{orgnztId}          ,
+                    #{insttCode}         ,
+                    #{emplyrSttusCode}   ,
+                    sysdate           ,
+                    #{subDn}			,
+                    #{memo},
+                    #{sms},
+                    #{lms},
+                    #{mms},
+                    #{nms},
+                    #{fms},
+                    #{lvId},
+                    #{useStatus}             )
+    </insert>
+    
+    <select id="searchPw" resultType="Integer">
+        
+            SELECT
+                    count(*)
+            FROM    COMTNEMPLYRINFO
+            WHERE   USER_NM=#{emplyrNm} and MBTLNUM=#{moblphonNo}
+        
+    </select>
+    
+    <insert id="sendnum">
+    	insert into MSG_DATA
+			(msg_seq,req_date,cur_state,call_to,call_from,sms_txt,MSG_TYPE)
+		values
+			(MSG_DATA_SEQ.nextval,sysdate,0,#{call_to},'01056351595',#{sms_txt},4)
+    </insert>
+    
+    <select id="searchCer" resultType="String">
+    	/*인증번호 체크*/
+	    SELECT sms_txt
+	    FROM(
+	    	SELECT	sms_txt
+	        FROM    ${log_table}
+	        WHERE   CALL_TO=#{moblphonNo}
+	        ORDER BY MSG_SEQ DESC
+	    )
+	    WHERE ROWNUM = 1
+    </select>
+    
+    <update id="updatePw">
+    	UPDATE COMTNEMPLYRINFO
+    	set PASSWORD=#{changPw}
+    	where USER_NM=#{emplyrNm} and MBTLNUM=#{moblphonNo}
+    </update>
+     
+     <update id="updateMessageRole"  >
+            UPDATE COMTNEMPLYRINFO 
+            SET SMS_ROLE        = #{sms}        , 
+                LMS_ROLE        = #{lms}        ,
+                MMS_ROLE       	= #{mms},
+                NOTI_ROLE 		= #{notice},
+                NOTILMS_ROLE 	= #{noticelms},
+                FRI_ROLE 		= #{friend},
+                FRILMS_ROLE 	= #{friendlms},
+                FRIMMS_ROLE 	= #{friendmms}
+            WHERE 1=1 
+    </update>
+     <update id="updateMessageRolePart"  >
+            UPDATE COMTNEMPLYRINFO 
+            SET SMS_ROLE        = #{sms}        , 
+                LMS_ROLE        = #{lms}        ,
+                MMS_ROLE       	= #{mms},
+                NOTI_ROLE 		= #{notice},
+                NOTILMS_ROLE 	= #{noticelms},
+                FRI_ROLE 		= #{friend},
+                FRILMS_ROLE 	= #{friendlms},
+                FRIMMS_ROLE 	= #{friendmms}
+            WHERE 1=1 and
+            	orgnzt_id = #{orgnztId}
+    </update>
+     <update id="updateMessageRoleUser"  >
+            UPDATE COMTNEMPLYRINFO 
+            SET SMS_ROLE        = #{sms}        , 
+                LMS_ROLE        = #{lms}        ,
+                MMS_ROLE       	= #{mms},
+                NOTI_ROLE 		= #{notice},
+                NOTILMS_ROLE 	= #{noticelms},
+                FRI_ROLE 		= #{friend},
+                FRILMS_ROLE 	= #{friendlms},
+                FRIMMS_ROLE 	= #{friendmms}
+            WHERE 1=1 and emplyr_id in
+            	  <foreach collection="userlist" item="item" index="index" separator="," open="(" close=")">
+	                    #{item}
+	            </foreach>
+    </update>
+   
+     <update id="updateMessageCash"  >
+            UPDATE COMTNEMPLYRINFO 
+            SET CASH = CASH + #{usercash}    
+            WHERE 1=1
+    </update>
+     <update id="updateMessageCashPart"  >
+            UPDATE COMTNEMPLYRINFO 
+            SET CASH = CASH + #{usercash}    
+            WHERE 1=1 and
+            	orgnzt_id = #{orgnztId}
+    </update>
+     <update id="updateMessageCashUser"  >
+            UPDATE COMTNEMPLYRINFO 
+            SET CASH = CASH + #{usercash}    
+            WHERE 1=1 and emplyr_id in
+            	  <foreach collection="userlist" item="item" index="index" separator="," open="(" close=")">
+	                    #{item}
+	            </foreach>
+    </update>
+    
+    <select id="checkPw" resultType="String">
+    	SELECT
+    		PASSWORD
+    	FROM
+    		COMTNEMPLYRINFO
+    	WHERE
+    		EMPLYR_ID = #{userId}
+    </select>
+    
+    <delete id="deleteUserR">
+    	DELETE FROM COMTNEMPLYRINFO
+    	WHERE EMPLYR_ID = #{userId}
+    </delete>
+    
+    <select id="checkUse" resultType="String">
+    	SELECT USE_STATUS
+    	FROM COMTNEMPLYRINFO
+    	WHERE EMPLYR_ID = #{userId}
+    </select>
+    
+    <update id="updateUseStatusN">
+    	UPDATE COMTNEMPLYRINFO
+    	SET USE_STATUS = 'N'
+    	WHERE EMPLYR_ID = #{userId}
+    </update>
+    
+    <select id="getPayFee" resultMap="cash">
+    	SELECT SUM(pay_fee) as pay_fee, pay_code
+		FROM MSG_LOG_202009
+		WHERE USER_ID = #{userId}
+		GROUP by pay_code
+    </select>
+</mapper>

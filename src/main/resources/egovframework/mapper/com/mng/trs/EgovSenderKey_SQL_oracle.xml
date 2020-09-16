@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?><!--Converted at: Wed May 11 15:51:02 KST 2016-->
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="senderKeyDAO">
+
+
+
+	<resultMap id="senderKey" type="egovframework.com.mng.trs.service.SenderKeyVO">
+		<result property="senderKeySeq" column="SENDER_KEY_SEQ" />
+		<result property="senderKey" column="SENDER_KEY" />
+		<result property="senderKeyType" column="SENDER_KEY_TYPE" />
+		<result property="profileName" column="PROFILE_NAME" />
+		<result property="profileUuid" column="PROFILE_UUID" />
+		<result property="regDate" column="REG_DATE" />
+		<result property="useYn" column="USE_YN" />
+	</resultMap>
+
+  
+
+ <insert id="insertSenderKey">
+		<![CDATA[
+			INSERT INTO SENDER_KEY 
+				( SENDER_KEY_SEQ
+				  , SENDER_KEY
+				  , SENDER_KEY_TYPE
+				  , PROFILE_NAME
+				  , PROFILE_UUID
+				  , USE_YN
+				  , PART_ID )
+			VALUES ( SENDER_KEY_SEQ.NEXTVAL
+				  , #{senderKey}
+				  , #{senderKeyType}
+				  , #{profileName}
+				  , #{profileUuid}
+				  , #{useYn}
+				  , #{partId} )
+		]]>
+	</insert>
+	
+	<update id="updateSenderKey">
+		<![CDATA[
+			UPDATE SENDER_KEY
+			SET SENDER_KEY=#{senderKey}
+				, SENDER_KEY_TYPE=#{senderKeyType}
+				, PROFILE_NAME=#{profileName}
+				, PROFILE_UUID=#{profileUuid}
+				, PART_ID=#{partId}
+				, USE_YN = 'Y'
+			WHERE SENDER_KEY_SEQ=#{senderKeySeq}
+				]]>
+	</update>
+	
+	<delete id="deleteSenderKey">
+			UPDATE SENDER_KEY 
+			SET USE_YN = 'N'
+			WHERE SENDER_KEY_SEQ=#{senderKeySeq}
+	</delete>
+	
+	<select id="selectSenderKey" resultMap="senderKey">
+		<![CDATA[
+			SELECT
+				SENDER_KEY_SEQ
+				, SENDER_KEY
+				, SENDER_KEY_TYPE
+				, PROFILE_NAME
+				, PROFILE_UUID
+				, REG_DATE
+				, USE_YN
+			FROM SENDER_KEY
+						WHERE SENDER_KEY_SEQ=#{senderKeySeq}
+				]]>
+	</select>
+	
+	<select id="selectSenderKeyList" parameterType="egovframework.com.mng.trs.service.SenderKeyVO" resultType="egovframework.com.mng.trs.service.SenderKeyVO">
+		SELECT
+		s.SENDER_KEY_SEQ
+		, s.SENDER_KEY
+		, s.SENDER_KEY_TYPE
+		, s.PROFILE_NAME
+		, s.PROFILE_UUID
+		, s.REG_DATE
+		, s.USE_YN
+		, s.PART_ID as partId
+		, p.ORGNZT_NM as partName
+		FROM SENDER_KEY s LEFT JOIN COMTNORGNZTINFO p on s.part_id = p.ORGNZT_ID
+		ORDER BY
+		USE_YN DESC, SENDER_KEY_SEQ DESC
+	</select>	
+	<select id="selectSenderKeyListTotCnt" parameterType="egovframework.com.mng.trs.service.SenderKeyVO" resultType="int">
+			SELECT COUNT(*) totcnt
+			FROM SENDER_KEY
+			WHERE 1=1
+			<if test="searchKeyword != null and searchKeyword != ''">
+				<if test="searchCondition == 0">AND
+					SENDER_KEY_SEQ = #{searchKeyword}
+				</if>
+				<if test="searchCondition == 1">AND
+					SENDER_KEY LIKE '%' || #{searchKeyword} || '%'
+				</if>
+			</if>
+	</select>
+</mapper>

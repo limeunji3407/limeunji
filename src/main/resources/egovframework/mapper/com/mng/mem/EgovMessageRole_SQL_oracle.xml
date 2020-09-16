@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="MessageRoleDAO">
+
+<resultMap id="messagerole" type="egovframework.com.mng.mem.service.MessageRoleVO">
+<result property="sms" column="SMS"/>
+<result property="lms" column="LMS"/>
+<result property="mms" column="MMS"/>
+<result property="notice" column="NOTICE"/>
+<result property="noticelms" column="NOTICELMS"/>
+<result property="friend" column="FRIEND"/>
+<result property="friendlms" column="FRIENDLMS"/>
+<result property="mo" column="MO"/>
+<result property="partcash" column="PARTCASH"/>
+<result property="usercash" column="USERCASH"/>
+</resultMap>
+
+
+<select id="selectMessageRole" resultMap="messagerole">
+	SELECT
+	        SMS             as "sms",
+	        LMS             as "lms",
+	        MMS           as "mms",
+	        NOTICE               as "notice",
+	        NOTICELMS				as "noticelms",
+	        FRIEND      as "friend",
+	        FRIENDLMS         as "friendlms",
+	        FRIENDMMS         as "friendmms",
+	        MO  as "mo",
+	        PARTCASH as "partcash",
+	        USERCASH as "usercash"
+	    FROM    COMMSGROLE
+</select>
+    
+<select id="countRole" resultType="Integer">
+	SELECT COUNT(seq)
+	FROM COMMSGROLE
+</select>
+    
+<insert id="insertMessageRole"  parameterType="egovframework.com.mng.mem.service.MessageRoleVO">
+    INSERT INTO COMMSGROLE (SEQ, LMS, MMS, NOTICE, NOTICELMS, FRIEND, FRIENDLMS, FRIENDMMS,  MO)
+    VALUES (1, #{lms}, #{mms}, #{notice}, #{noticelms}, #{friend}, #{friendlms}, #{friendmms}, #{mo})
+	
+</insert>
+
+<update id="updateMessageRole" parameterType="egovframework.com.mng.mem.service.MessageRoleVO">
+	UPDATE COMMSGROLE
+	SET LMS=#{lms}, MMS=#{mms}, NOTICE=#{notice}, NOTICELMS=#{noticelms}, FRIEND=#{friend}, FRIENDLMS=#{friendlms}, FRIENDMMS=#{friendmms}, MO=#{mo}
+	WHERE SEQ = 1
+</update>
+    
+    <insert id="insMsgPartCash">
+    	INSERT INTO COMMSGROLE (SEQ, partcash)
+    	VALUES (1, #{partcash})
+    </insert>
+    
+    <update id="updMsgPartCash">
+	    UPDATE COMMSGROLE
+		SET partcash=#{partcash}
+		WHERE SEQ = 1
+    </update>
+    
+    <insert id="insMsgUsrCash">
+    	INSERT INTO COMMSGROLE (SEQ, USERCASH)
+    	VALUES (1, #{usercash})
+    </insert>
+    
+    <update id="updMsgUsrCash">
+	    UPDATE COMMSGROLE
+		SET USERCASH=#{usercash}
+		WHERE SEQ = 1
+    </update>
+</mapper>

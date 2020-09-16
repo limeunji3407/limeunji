@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="PwdConfigDAO">
+	
+	<insert id="pwdConfigInsert">
+		INSERT INTO COMPWDCONFIG(pwd_cycle, pwd_pattern, pwd_first, denycheck, adminid, denyword)
+		VALUES (#{pwdCycle}, #{pwdPattern}, #{pwdFirst}, #{dentcheck}, #{adminid}, #{denyword})
+	</insert>
+	
+	<update id="pwdConfigUpdate">
+		UPDATE COMPWDCONFIG
+		SET pwd_cycle = #{pwdCycle}, pwd_pattern = #{pwdPattern}, pwd_first = #{pwdFirst}, denycheck = #{dentcheck}, denyword = #{denyword}
+		WHERE  adminid = #{adminid}
+	</update>
+    
+    <select id="pwSet" resultType="egovframework.com.mng.pwd.service.PasswordSetVO">
+    	SELECT
+    		PWD_CYCLE as pwdCycle,
+    		PWD_PATTERN as pwdPattern,
+    		PWD_FIRST as pwdFirst,
+    		DENYCHECK as dentcheck,
+    		ADMINID as adminid,
+    		DENYWORD as denyword
+    	FROM
+    		COMPWDCONFIG
+    </select>
+</mapper>

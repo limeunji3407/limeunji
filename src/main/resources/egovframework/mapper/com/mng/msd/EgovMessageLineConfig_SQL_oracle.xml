@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?><!--Converted at: Wed May 11 15:51:02 KST 2016-->
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="MessageLineConfigDAO">
+
+
+    <resultMap id="msglineconfig" type="egovframework.com.mng.msd.service.MessageLineConfigVO">
+        <result property="userId" column="USERID"/>
+        <result property="sms" column="SMS"/>
+        <result property="lms" column="LMS"/>
+        <result property="mms" column="MMS"/>
+        <result property="noti" column="NOTI"/>
+        <result property="renoti" column="RENOTI"/>
+        <result property="frit" column="FRIT"/>
+        <result property="refri" column="REFRI"/>
+    </resultMap>
+
+  
+
+ 
+
+    <select id="selectMessageLineConfig_S" resultMap="msglineconfig">
+        
+            SELECT SMS sms,
+                   LMS lms,
+                   MMS mms,
+                   NOTI noti,
+                   RENOTI renoti,
+                   FRIT frit,
+                   REFRI refri
+              FROM COMMSGLINECONF
+        
+    </select>
+
+    <insert id="insertMessageLineConfig_S" parameterType="egovframework.com.mng.msd.service.MessageLineConfigVO">     
+          INSERT INTO COMMSGLINECONF (SMS, LMS, MMS, NOTI, RENOTI, FRIT, REFRI)
+          values(#{sms},#{lms},#{mms},#{noti},#{renoti},#{frit},#{refri})
+    </insert>
+     
+    <select id="countRole" resultType="Integer">
+		SELECT COUNT(SEQ)
+		FROM COMMSGLINECONF
+	</select>
+	
+	<update id="updateMessageLineConfig" parameterType="egovframework.com.mng.msd.service.MessageLineConfigVO">
+		UPDATE COMMSGLINECONF
+		SET SMS=#{sms}, LMS=#{lms}, MMS=#{mms}, NOTI=#{noti}, RENOTI=#{renoti}, FRIT=#{frit}, REFRI=#{refri}
+		WHERE SEQ = 1
+	</update>
+</mapper>

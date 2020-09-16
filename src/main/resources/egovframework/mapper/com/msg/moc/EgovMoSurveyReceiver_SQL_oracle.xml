@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="MoSurveyReceiverDAO">
+
+	<select id="moSurveyReceiverList"
+		parameterType="egovframework.com.msg.moc.service.MoSurveyReceiverVO"
+		resultType="egovframework.com.msg.moc.service.MoSurveyReceiverVO">
+            SELECT
+                receiver_seq, survey_seq, receiver_number
+            FROM
+                MO_SURVEY_RECEIVER
+	</select>
+
+	<insert id="moSurveyReceiverInsert">
+		INSERT INTO MO_SURVEY_RECEIVER(receiver_seq, survey_seq, receiver_number)
+		VALUES (#{receiver_seq}, #{survey_seq}, #{receiver_number})
+	</insert>
+	
+	<update id="moSurveyReceiverUpdate">
+		UPDATE MO_SURVEY_RECEIVER
+		SET survey_seq = #{survey_seq}, receiver_number = #{receiver_number}
+		WHERE receiver_seq = #{receiver_seq}
+	</update>
+	
+	<delete id="moSurveyReceiverDelete">
+		DELETE FROM MO_SURVEY_RECEIVER
+		WHERE receiver_seq = #{receiver_seq}
+	</delete>
+</mapper>

@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="MessagingMoComplainDAO">
+
+	<resultMap id="messagingMoComplain" type="egovframework.com.msg.moc.service.MessagingMoComplainVO">
+		<result property="mo_key" column="MO_KEY" />
+		<result property="date_mo" column="DATE_MO" />
+		<result property="mo_recipient" column="MO_RECIPIENT" />
+		<result property="mo_originator" column="MO_ORIGINATOR" />
+		<result property="mo_callback" column="MO_CALLBACK" />
+		<result property="subject" column="SUBJECT" />
+		<result property="content" column="CONTENT" />
+		<result property="mo_key" column="mo_key" />
+	</resultMap>
+	<resultMap type="egovframework.com.msg.moc.service.ComplainMemo" id="ComplainMemo">
+		<result property="mo_key" column="MO_KEY" />
+		<result property="memo_seq" column="memo_seq" />
+		<result property="create_at" column="create_at" />
+		<result property="user_name" column="user_name" />
+		<result property="user_id" column="user_id" />
+		<result property="content" column="content" />
+	</resultMap>
+	<resultMap type="egovframework.com.msg.moc.service.MessagingMoComplainVO" id="ComplainAnswer">
+		<result property="answer_seq" column="answer_seq" />
+		<result property="answer_subject" column="answer_subject" />
+		<result property="answer_content" column="answer_content" />
+		<result property="answer_at" column="answer_at" />
+		<result property="answer_num" column="answer_num" />
+		<result property="answer_to_num" column="answer_to_num" />
+		<result property="answer_id" column="answer_id" />
+		<result property="answer_name" column="answer_name" />
+		<result property="orgnzt_nm" column="orgnzt_nm" />
+	</resultMap>
+
+	<select id="messagingMoComplainList"
+		parameterType="egovframework.com.msg.moc.service.MessagingMoComplainVO"
+		resultMap="messagingMoComplain">
+		 <![CDATA[
+		 
+            SELECT
+                DATE_MO, MO_RECIPIENT, MO_CALLBACK, SUBJECT, CONTENT, mo_key
+            FROM
+                EM_MO_TRAN
+            WHERE
+                MO_KEY IS NOT NULL
+        ]]>
+		<include refid="mo_recipient"></include>
+		<include refid="searchType"></include>
+		<include refid="searchDateStatus"></include> 
+	</select>
+	<select id="messagingMoComplainListX"
+		parameterType="egovframework.com.msg.moc.service.MessagingMoComplainVO"
+		resultMap="messagingMoComplain">
+		 <![CDATA[
+            SELECT  *
+              FROM  (
+            SELECT ROWNUM RNUM, ALL_LIST.*
+              FROM  (
+       
+            SELECT
+                date_mo, mo_recipient, mo_callback, subject, content
+            FROM
+                EM_MO_TRAN
+            WHERE
+                mo_key IS NOT NULL
+        ]]>
+		<include refid="mo_recipient"></include>
+		<include refid="searchType"></include>
+		<include refid="searchDateStatus"></include>
+	<![CDATA[
+        
+                    ) ALL_LIST
+                    )
+             WHERE  RNUM  > #{firstIndex}
+               AND  RNUM <= #{firstIndex} + #{recordCountPerPage}
+    ]]>
+	</select>
+
+	<!-- MO 번호 -->
+	<sql id="mo_recipient">
+		<if test="mo_recipient != null">
+			and mo_recipient = #{mo_recipient}
+		</if>
+	</sql>
+	
+	<!-- 검색어 -->
+	<sql id="searchType">
+        <if test="searchCnd != null">
+            <if test="searchCnd == 1">
+                and subject like '%'||#{searchWrd}||'%'
+            </if>
+            <if test="searchCnd == 1">
+                and subject like '%'||#{searchWrd}||'%'
+            </if>
+            <if test="searchCnd == 1">
+                and subject like '%'||#{searchWrd}||'%'
+            </if>
+        </if>
+    </sql>
+    
+    <sql id="searchDateStatus">
+		<if test="searchDateStatus != null">
+			and date_mo BETWEEN #{searchBgnDe} and #{searchEndDe}
+		</if>
+	</sql>
+
+	<select id="messagingMoComplainOne"
+		parameterType="egovframework.com.msg.moc.service.MessagingMoComplainVO"
+		resultMap="messagingMoComplain">
+		SELECT
+			date_mo, mo_recipient, mo_callback, subject, content
+		FROM
+			EM_MO_TRAN
+		WHERE
+			mo_key = #{mo_key}
+	</select>
+	
+	<insert id="moComMemoInsert">
+		insert into memo(memo_seq, create_at, user_name, user_id, content, mo_key)
+		values (memo_seq.nextval, sysdate, #{user_name}, #{user_id}, #{content}, #{mo_key})
+	</insert>
+	
+	<select id="moComMemoSelect" resultMap="ComplainMemo">
+		SELECT
+			memo_seq, create_at, user_name, user_id, content
+		FROM
+			MEMO
+		WHERE
+			mo_key = #{mo_key}
+	</select>
+	<select id="moComAnswerSelect" resultMap="ComplainAnswer">
+		SELECT
+			a.answer_seq, a.answer_subject, a.answer_content, a.answer_at, a.answer_num, a.answer_to_num, a.answer_id, a.answer_name, p.orgnzt_nm
+		FROM
+			EMO_ANSWER a join COMTNORGNZTINFO p on a.ANSWER_PARTNAME = p.orgnzt_id
+		WHERE
+			mo_key = #{mo_key}
+	</select>
+	
+	<select id="moComMemoSelectName" resultMap="ComplainMemo">
+		SELECT
+			memo_seq, create_at, user_name, user_id, content
+		FROM
+			MEMO
+		WHERE
+			memo_seq = #{memo_seq}
+	</select>
+	
+	<delete id="moComMemoDelete">
+		DELETE FROM MEMO
+		WHERE memo_seq = #{memo_seq}
+	</delete>
+	
+	<insert id="moComAnswer">
+		INSERT INTO EMO_ANSWER(answer_seq, answer_subject, answer_content, answer_at,answer_num, answer_to_num,answer_id, answer_name, answer_partname, mo_key)
+		VALUES (answer_seq.NEXTVAL, #{answer_subject}, #{answer_content}, SYSDATE, #{answer_num}, #{answer_to_num}, #{answer_id}, #{answer_name}, #{answer_partname}, #{mo_key})
+	</insert>
+	
+	<update id="moComMemoUpdate">
+		UPDATE MEMO
+		SET content = #{content}
+		WHERE memo_seq = #{memo_seq}
+	</update>
+</mapper>

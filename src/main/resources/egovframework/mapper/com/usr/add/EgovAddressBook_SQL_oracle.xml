@@ -1,0 +1,215 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="AddressBookDAO">
+
+	<resultMap id="AddressBookList" type="egovframework.com.usr.add.service.AddressBookVO">
+		<result property="address_id" column="address_id"/>
+		<result property="user_id" column="user_id"/>
+		<result property="address_type" column="address_type"/>
+		<result property="address_name" column="address_name"/>
+		<result property="address_num" column="address_num"/>	
+		<result property="address_ect" column="address_ect"/>		
+		<result property="address_date" column="address_date"/>	
+		<result property="address_capy" column="address_capy"/>	
+		<result property="part_id" column="part_id"/>
+		<result property="address_category" column="address_category"/>
+		<result property="address_group" column="address_group"/>
+		<result property="category_type" column="category_type"/>
+		<result property="address_grp_name" column="address_grp_name"/>
+		<result property="part_id" column="part_id"/>
+	</resultMap>
+	<insert id="insertAddressBook" parameterType="egovframework.com.usr.add.service.AddressBookVO">
+		INSERT INTO ADDRESS_BOOK (address_id, user_id, address_type, address_name, address_num, address_ect, address_category, address_group, address_grp_name, part_id, ADDRESS_CAPY)
+        VALUES (address_seq.nextval, #{user_id}, #{address_type}, #{address_name}, #{address_num}, #{address_ect}, #{address_category}, #{address_group}, #{address_grp_name}, #{part_id}, #{address_capy})
+	</insert>
+		
+	<insert id="insertExcelAddressBook" parameterType="egovMap">
+		INSERT INTO ADDRESS_BOOK (address_id, user_id, address_type, address_name, address_num, address_ect, address_category, address_group, address_grp_name, part_id, ADDRESS_CAPY)
+        VALUES (address_seq.nextval, #{user_id}, #{address_type}, #{address_name}, #{address_num}, #{address_ect}, #{address_category}, #{address_group}, #{address_grp_name},  #{part_id}, #{address_capy})
+	</insert>
+	
+    <insert id="insertExcel" parameterType="egovMap" >
+    	insert into ADDRESS_BOOK((address_id, user_id, address_type, address_name, address_num, address_ect, address_category, address_group, part_id, ADDRESS_CAPY)
+        VALUES 
+   	 	<foreach collection="excelContent" item="item" separator=",">
+        	(address_seq.nextval, #{item.user_id}, #{item.address_type}, #{item.address_name}, #{item.address_num}, #{item.address_ect}, #{item.address_category}, #{item.address_group}, #{item.part_id}, #{item.address_capy})
+    	</foreach>
+  	</insert>
+	<select id="selectAddressBookList" parameterType="egovframework.com.usr.add.service.AddressBookVO" resultMap="AddressBookList">
+		 <![CDATA[
+            SELECT
+                ADDRESS_NAME, ADDRESS_NUM, ADDRESS_ECT, ADDRESS_CAPY, ADDRESS_CATEGORY, ADDRESS_GROUP, ADDRESS_id, ADDRESS_GRP_NAME
+            FROM
+                ADDRESS_BOOK
+            WHERE
+                ADDRESS_TYPE = #{address_type}
+        ]]>
+        <include refid="category_type"></include>
+        <include refid="address_category"></include>
+        <![CDATA[
+            ORDER BY
+            	ADDRESS_ID desc
+        ]]>
+	</select>
+
+	<select id="selectAddressBookListAll" parameterType="egovframework.com.usr.add.service.AddressBookVO" resultMap="AddressBookList">
+		 
+		 <![CDATA[
+       
+            SELECT
+                ADDRESS_NAME, ADDRESS_NUM, ADDRESS_ECT, ADDRESS_CAPY, ADDRESS_CATEGORY, ADDRESS_GROUP
+            FROM
+                ADDRESS_BOOK
+        ]]>
+        <include refid="category_type"></include>
+	</select>
+	
+	<select id="selectAddressBookListCnt" parameterType="egovframework.com.usr.add.service.AddressBookVO" resultType="java.lang.Integer">
+		 <![CDATA[
+			SELECT COUNT(ADDRESS_ID)
+			FROM
+                ADDRESS_BOOK
+            WHERE
+                ADDRESS_TYPE = #{address_type}
+        ]]>
+        <include refid="category_type"></include>						
+	</select>
+	
+	<update id="updateAddressBook" parameterType="egovframework.com.usr.add.service.AddressBookVO">
+		UPDATE ADDRESS_BOOK SET address_name = #{address_name}, address_num =  #{address_num}, address_ect = #{address_ect}, ADDRESS_CAPY =  #{address_capy} 
+        WHERE ADDRESS_ID = #{address_id}
+	</update>
+	
+	<delete id="addressDelete" parameterType="egovframework.com.usr.add.service.AddressBook">
+        DELETE FROM ADDRESS_BOOK
+        WHERE address_id = #{address_id}
+    </delete>
+    <delete id="addressDeleteAll">
+    	<!-- 전체삭제 -->
+        DELETE FROM ADDRESS_BOOK
+        WHERE 
+        	USER_ID = #{user_id} AND
+        	ADDRESS_TYPE = '0'
+        
+    </delete>
+    <delete id="deleteUserDetail">
+    	<!-- 부분삭제 -->
+        DELETE FROM ADDRESS_BOOK
+        WHERE 
+        	1=1
+        	<choose>
+            	<when test="address_type != null and address_type.equals('0'.toString())"><!-- type 0 개인-->
+					and ADDRESS_TYPE = '0' 
+					and USER_ID = #{user_id}
+				</when>
+				<when test="(part_id != null and !part_id.equals(''.toString())) or (address_type != null and address_type.equals('1'.toString()))"><!-- type 1 부서 -->
+					and ADDRESS_TYPE =  '1'
+					and part_id = #{part_id}
+				</when>
+				<when test="address_type != null and address_type.equals('2'.toString())"><!-- type 2 공유 -->
+					and ADDRESS_TYPE = '2'
+				</when>
+				<when test="address_type != null and address_type.equals('3'.toString())"><!-- type 3 직원 -->
+					and ADDRESS_TYPE = 3 
+					and USER_ID = #{user_id}
+				</when>
+			</choose>
+        	and ADDRESS_CATEGORY in(
+            	SELECT 
+		           	CODE
+		           FROM 
+		           	COMADDRGROUP
+		           WHERE
+		           	code = (SELECT code FROM COMADDRGROUP WHERE code in
+		           	<foreach collection="addressBookVoList" item="item" index="index" separator="," open="(" close=")">
+	                    #{item.address_category}
+	                </foreach>
+		           	)
+		           	OR
+		           	parent = (SELECT code FROM COMADDRGROUP WHERE code in
+		           	<foreach collection="addressBookVoList" item="item" index="index" separator="," open="(" close=")">
+	                    #{item.address_category}
+	                </foreach>
+		           	)
+            )
+        
+    </delete>
+    
+    <select id="selectAddressBookListCopy" parameterType="egovframework.com.usr.add.service.AddressBookVO" resultMap="AddressBookList">
+            SELECT
+                ADDRESS_ID, ADDRESS_NAME, ADDRESS_NUM, ADDRESS_ECT, ADDRESS_CAPY, ADDRESS_CATEGORY, ADDRESS_GROUP
+            FROM
+                ADDRESS_BOOK
+        	WHERE
+        		1=1
+        			AND ADDRESS_ID IN 
+			    <foreach collection="addressBookVoList" item="item" index="index" separator="," open="(" close=")">
+                    #{item.address_id}
+                </foreach>
+	</select>
+	<insert id="insertAddressCopyList" parameterType="egovframework.com.usr.add.service.AddressBookVO">
+	   	INSERT 
+		INTO ADDRESS_BOOK (address_id, user_id, address_type, address_name, address_num, address_ect, address_category, address_group, address_grp_name, ADDRESS_CAPY, part_id)
+		SELECT address_seq.nextval, ab.a, ab.b, ab.c, ab.d, ab.e, ab.f, ab.g, ab.h, ab.i, ab.j
+		FROM (
+			<foreach collection="addressBookVoList" item="item" index="ix" separator="UNION ALL">
+			SELECT
+				#{item.user_id} a, #{item.address_type} b, #{item.address_name} c, #{item.address_num} d, #{item.address_ect} e, #{item.address_category} f, #{item.address_group} g, #{item.address_grp_name} h, #{item.address_capy} i, #{item.part_id} j
+			FROM DUAL 
+			</foreach>
+		) ab
+	</insert>
+    
+       
+<!--     <sql id="code">
+        <if test="address_group != null ">
+            and address_group = #{address_group}
+        </if>
+    </sql> -->
+    
+    <sql id="category_type">
+        <if test="address_type == 0">
+            and user_id = #{user_id}
+        </if>
+        <if test="address_type == 1">
+            and part_id = #{part_id}
+        </if>
+    </sql>
+
+    <sql id="address_category">
+        <if test="address_category != null ">
+            and ADDRESS_CATEGORY in(
+            	SELECT 
+		           	code
+		           FROM 
+		           	COMADDRGROUP
+		           WHERE
+		           	code = #{address_category}
+		           	OR
+		           	parent = #{address_category}
+            )
+        </if>
+    </sql>
+    
+    <sql id="part_id">
+        <if test="part_id != null ">
+            and part_id = #{part_id}
+        </if>
+    </sql>
+    
+	<sql id="category_address">
+        <if test="address_category != null">
+            and address_category = #{address_category}
+        </if>
+        <if test="address_group != null">
+            and address_category = #{address_category} and address_group = #{address_group}
+        </if>
+    </sql>
+    
+    <select id="serchEmpAddr" resultMap="AddressBookList">
+    	SELECT a.ADDRESS_ID, a.USER_ID, a.ADDRESS_NAME, a.ADDRESS_NUM, o.orgnzt_nm as part_id
+		FROM ADDRESS_BOOK a left join COMTNEMPLYRINFO e on a.user_id = e.emplyr_id left join comtnorgnztinfo o on e.orgnzt_id = o.orgnzt_id
+		WHERE address_num = #{address_num} and ADDRESS_TYPE = 1
+    </select>
+</mapper>

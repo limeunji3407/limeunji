@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="deptManageDAO">
+
+    <resultMap id="deptManageVO" type="egovframework.com.uss.umt.service.DeptManageVO">
+        <result property="orgnztId" column="ORGNZT_ID"/>
+        <result property="orgnztNm" column="ORGNZT_NM"/>
+        <result property="orgnztDc" column="ORGNZT_DC"/>
+        <result property="cashlimitMonth" column="CASHLIMIT_MONTH"/>
+        <result property="cashlimitTemp" column="CASHLIMIT_TEMP"/>
+        <result property="orgnztTel" column="CALLNUM"/>
+        <result property="partCode" column="PART_CODE"/>
+        <result property="sortNum" column="SORT_NUM"/>
+    </resultMap>
+
+    <select id="selectDeptManageList" resultMap="deptManageVO">
+            SELECT ORGNZT_ID,
+                   ORGNZT_NM,
+                   ORGNZT_DC,
+                   CASHLIMIT_MONTH,
+                   CASHLIMIT_TEMP,
+                   CALLNUM,
+                   status,
+                   PART_CODE,
+                   SORT_NUM
+              FROM COMTNORGNZTINFO
+             WHERE 1=1
+            <if test="searchCondition == 0">AND
+                ORGNZT_NM LIKE '%'||#{searchKeyword}||'%'
+            </if>
+            <if test="searchCondition == 1">AND
+                ORGNZT_ID = #{searchKeyword}
+            </if>
+            <if test="searchCondition == 2">AND
+                CALLNUM LIKE '%'||#{searchKeyword}||'%'
+            </if>
+                          
+    </select>
+
+    <select id="selectDeptCallList" parameterType="String" resultType="egovframework.com.uss.umt.service.SendNumberVO">
+			/*발신자 리스트*/
+            SELECT sending_id as sendingId, part_code as partCode, sending_number as sendingNumber, sending_order as sendingOrder
+            FROM SENDING_NUMBER
+            WHERE 1=1 AND
+            	PART_CODE = #{orgnztId}
+            ORDER BY
+            	SENDING_ORDER ASC
+    </select>
+    
+    <select id="selectDeptManageListTotCnt" resultType="int">
+
+            SELECT COUNT(*) totcnt
+            FROM COMTNORGNZTINFO
+            WHERE 1=1
+            <if test="searchCondition == 1">AND
+                ORGNZT_NM LIKE '%'||#{searchKeyword}||'%'
+            </if>
+    </select>
+    
+    <select id="selectDeptManage" resultMap="deptManageVO">
+        
+            SELECT ORGNZT_ID,
+                   ORGNZT_NM,
+                   ORGNZT_DC,
+                   CASHLIMIT_MONTH,
+                   CASHLIMIT_TEMP,
+                   CALLNUM,
+                   PART_CODE
+              FROM COMTNORGNZTINFO
+             WHERE ORGNZT_ID = #{orgnztId}    
+        
+    </select>
+
+    <insert id="insertDeptManage">
+            INSERT INTO COMTNORGNZTINFO
+                   (ORGNZT_ID,
+                    ORGNZT_NM,
+                    ORGNZT_DC,
+                   CASHLIMIT_MONTH,
+                   CASHLIMIT_TEMP,
+                   CALLNUM,
+                   STATUS,
+                   PART_CODE)
+            VALUES (#{orgnztId},
+                    #{orgnztNm}, 
+                    #{orgnztDc}, 
+                    #{cashlimitMonth}, 
+                    #{cashlimitTemp}, 
+                    #{orgnztTel},
+                    #{status},
+                    #{partCode})
+    </insert>     
+    
+    <insert id="insertAddressCopyList" parameterType="egovframework.com.usr.add.service.AddressBookVO">
+	   	INSERT 
+		INTO ADDRESS_BOOK (address_id, user_id, address_type, address_name, address_num, address_ect, address_category, address_group, address_grp_name, ADDRESS_CAPY, part_id)
+		SELECT address_seq.nextval, ab.a, ab.b, ab.c, ab.d, ab.e, ab.f, ab.g, ab.h, ab.i, ab.j
+		FROM (
+			<foreach collection="addressBookVoList" item="item" index="ix" separator="UNION ALL">
+			SELECT
+				#{item.user_id} a, #{item.address_type} b, #{item.address_name} c, #{item.address_num} d, #{item.address_ect} e, #{item.address_category} f, #{item.address_group} g, #{item.address_grp_name} h, #{item.address_capy} i, #{item.part_id} j
+			FROM DUAL 
+			</foreach>
+		) ab
+	</insert>
+    <insert id="insertDeptManageCall" parameterType="egovframework.com.uss.umt.service.DeptManageVO">
+    		/*발신번호 다중 인서트*/
+            INSERT 
+            INTO SENDING_NUMBER
+                   (
+                   	SENDING_ID,
+                    PART_CODE,
+                    SENDING_NUMBER,
+                    SENDING_ORDER
+                    )
+            SELECT sending_seq.nextval, ab.a, ab.b, ab.c
+           	FROM (
+           		<foreach collection="sendNumberVOList" item="item" index="ix" separator="UNION ALL">
+				SELECT
+					#{orgnztId} a, #{item.sendingNumber} b, #{item.sendingOrder} c
+				FROM DUAL 
+				</foreach>
+           	) ab
+    </insert>     
+
+    <update id="updateDeptManage">
+            UPDATE COMTNORGNZTINFO
+               SET ORGNZT_NM = #{orgnztNm},
+                   ORGNZT_DC = #{orgnztDc},  
+                   CASHLIMIT_MONTH = #{cashlimitMonth},
+                   CASHLIMIT_TEMP = #{cashlimitTemp},
+                   CALLNUM = #{orgnztTel},
+                   PART_CODE = #{partCode}
+             WHERE ORGNZT_ID = #{orgnztId}
+    </update>    
+    <update id="updateDeptManages">
+            <foreach collection="list" item="item" open="DECLARE BEGIN" close=";END;" separator=";">
+	            UPDATE COMTNORGNZTINFO
+	               SET 
+	               	   SORT_NUM = #{item.sortNum}
+	             WHERE 
+	             	ORGNZT_ID = #{item.orgnztId}
+            </foreach>
+    </update>    
+    
+    <delete id="deleteDeptManage">
+            UPDATE  COMTNORGNZTINFO
+            SET STATUS = 'N'
+             WHERE ORGNZT_ID = #{orgnztId}
+    </delete> 
+     
+    <delete id="deleteDeptManageCall">
+    		/*특정 부서의 발신번호 전부 삭제*/
+            DELETE  SENDING_NUMBER
+            WHERE PART_CODE = #{orgnztId}
+    </delete>  
+
+	<select id="selectOnePartName" resultType="String">
+		SELECT ORGNZT_NM
+		FROM COMTNORGNZTINFO
+		WHERE ORGNZT_ID = #{orgnztId}
+	</select>
+	
+	<select id="codeCheck" resultType="Integer">
+		SELECT COUNT(1)
+           FROM(
+             	SELECT ORGNZT_NM
+				FROM COMTNORGNZTINFO
+                WHERE PART_CODE = #{checkCode}
+           )
+	</select>
+	
+	<select id="selectDeptUser" resultType="Integer">
+		SELECT count(EMPLYR_ID)
+		FROM COMTNEMPLYRINFO
+		WHERE ORGNZT_ID = #{part_id}
+	</select>
+</mapper>

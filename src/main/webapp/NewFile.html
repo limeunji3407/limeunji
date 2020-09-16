@@ -1,0 +1,56 @@
+<!-- popup_신규등록 -->
+         <div class="pop_wrap pop_new width-430px" >
+         <form id="sdky-form" data-parsley-validate="">
+            <div class="pop_tit">카카오senderkey 신규등록</div>
+         <div class="width-100 padding-bottom-10 border-bottom-e9eced">
+            <table class="width-100" cellpadding="0" cellspacing="0" border="0">
+               <tr>
+                  <th class="width-100px font-000 font-16px text-left">Senderkey</th>
+                  <td class="text-left">
+                     <input type="text" name="senderkey" placeholder="" class="input_blank width-100 border-box border-8bc5ff" style="padding-left:10px;" required="" data-parsley-required="true" data-parsley-trigger="change" data-parsley-type="digits" data-parsley-maxlength="11"/>
+                  </td>
+               </tr>
+               <tr>
+                  <th class="font-000 font-16px text-left">키타입</th>
+                  <td class="text-left">
+                     <select title="" class="select_blank_blue width-100 border-8bc5ff" name="senderkey_type"  required="" data-parsley-required="true" data-parsley-trigger="change">
+                        <option value="">키 타입을 선택하세요</option>
+                        <option value="G">그룹</option>
+                        <option value="S">발신</option>
+                     </select>   
+                     <!-- <input type="text" name="senderkey_type" placeholder="" class="input_blank width-100 border-box border-8bc5ff" style="padding-left:10px;" /> -->
+                  </td>
+               </tr>
+               <tr>
+                  <th class="font-000 font-16px text-left">프로필명</th>
+                  <td class="text-left">
+                     <input type="text" name="profile_name" placeholder="" class="input_blank width-100 border-box border-8bc5ff" style="padding-left:10px;"  required="" data-parsley-required="true" data-parsley-trigger="change" data-parsley-maxlength="200"/>
+                  </td>
+               </tr>
+               <tr>
+                  <th class="font-000 font-16px text-left">UUID</th>
+                  <td class="text-left">
+                     <input type="text" name="profile_uuid" placeholder="" class="input_blank width-100 border-box border-8bc5ff" style="padding-left:10px;"  required="" data-parsley-required="true" data-parsley-trigger="change" data-parsley-maxlength="200"/>
+                  </td>
+               </tr>
+               <tr>
+                  <th class="font-000 font-16px text-left vertical-align-top"><span class="inline-block margin-top-15">사용부서</span></th>
+                  <td class="text-left height-60px vertical-align-top">
+                     <!-- 검색박스 -->
+                     <div class="widht-100 margin-top-10">
+                        <select title="" class="select_blank_blue width-100 border-8bc5ff"  required="" data-parsley-required="true" data-parsley-trigger="change">
+                           <option>사용할 부서명을 입력하세요</option>
+                        </select>         
+                     </div>
+                  </td>
+               </tr>
+            </table>
+         </div>
+         <!-- 버튼 -->
+         <div class="pop_btn">
+            <input type="submit" class="background-8bc5ff border-8bc5ff font-fff margin-right-20" id="addSenderKeyBtn" value="등록">
+            <!-- <a class=" background-8bc5ff border-8bc5ff font-fff margin-right-20" id="addSenderKeyBtn">등록</a> -->
+            <a class="pop_close background-fff border-6f6f6f font-6f6f6f">취소</a>
+         </div>
+         </form>
+        </div>

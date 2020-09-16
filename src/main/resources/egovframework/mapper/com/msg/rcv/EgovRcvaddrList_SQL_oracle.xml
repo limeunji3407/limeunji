@@ -1,0 +1,318 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="RcvaddrListDAO">
+
+<resultMap type="egovframework.com.msg.rcv.service.RcvaddrList" id="listall">
+	<result property="pay_code" column="pay_code" />
+	<result property="sent_date" column="sent_date" />
+	<result property="call_from" column="call_from" />
+	<result property="call_to" column="call_to" />
+	<result property="sms_txt" column="sms_txt" />
+	<result property="cur_state" column="CUR_STATE" />
+	<result property="msg_type_resend" column="msg_type_resend" />
+	<result property="rslt_code" column="rslt_code" />
+	<result property="rslt_code2" column="rslt_code2" />
+	<result property="mms_noticetalk_body" column="mms_noticetalk_body" />
+	<result property="mms_body" column="mms_body" />
+	<result property="mms_friend_body" column="mms_friend_body" />
+	<result property="mms_noticetalk_subject" column="mms_noticetalk_subject" />
+	<result property="mms_subject" column="mms_subject" />
+	<result property="mms_friend_subject" column="mms_friend_subject" />
+	<result property="user_id" column="user_id" />
+	<result property="excel_seq" column="EXCEL_SEQ" />
+	<result property="req_date" column="req_date" />
+	<result property="user_name" column="user_name" />
+	<result property="msg_seq" column="msg_seq" />
+	<result property="cnt" column="cnt" />
+	<result property="msg_id" column="msg_id" />
+</resultMap>
+
+	<select id="workList"
+		resultType="egovframework.com.msg.rcv.service.ComtccmmnDetailCode">
+
+		SELECT 
+			CODE, 
+			CODE_NM as codeNm 
+		FROM 
+			COMTCCMMNDETAILCODE
+			  
+		WHERE 
+			code_id='COM003'
+	</select>
+	<select id="rcvaddrListUserId"
+		resultType="egovframework.com.uss.umt.service.UserManageVO">
+		SELECT 
+			EMPLYR_ID AS emplyrId,
+			USER_NM AS emplyrNm
+		FROM 
+			COMTNEMPLYRINFO 
+		WHERE 
+			ORGNZT_ID = #{orgnztId}
+	</select>
+	
+	<select id="rcvaddrList"
+		parameterType="egovframework.com.msg.rcv.service.RcvaddrListVO"
+		resultType="egovframework.com.msg.rcv.service.RcvaddrListVO">
+
+		SELECT * FROM ( SELECT rownum rn, TB.* FROM (
+
+			SELECT
+			RCV_ID as "rcvId",
+			USERID as "userId",
+			COLUMN1 as "column1",
+			RCV_NUMBER as "rcvNumber",
+			RCV_EMPLY_CHK as "rcvEmplyChk",
+			RCV_TYPE as "rcvType",
+			RCV_CHECK as "rcvCheck",
+			RCV_RSVT_CHK as "rcvRsvtChk",
+			RCV_ETC as "rcvEtc",
+			RCV_TITLE as "rcvTitle",
+			RCV_CONTENT as "rcvContent",
+			SEND_DATE as "sendDate",
+			SND_NUMBER as "sndNumber"
+			FROM
+			COMRCVADDRLIST
+			WHERE 1=1
+			<if test='userid != null and userid neq ""'>
+				AND USERID = #{userId}
+			</if>
+			<if test='userManageVOList != null and userManageVOList.size > 0'>
+				AND USERID IN
+				<foreach collection="userManageVOList" item="item" index="index" separator="," open="(" close=")">
+                    #{item.emplyrId}
+                </foreach>
+			</if>
+			<if test='rcv_type != null and rcv_type neq ""'>
+				AND RCV_TYPE = #{rcvType}
+			</if>
+			<if test='rcv_check != null and rcv_check neq ""'>
+				AND RCV_CHECK = #{rcvCheck}
+			</if>
+			<if
+				test="@egovframework.com.cmm.util.EgovMybaitsUtil@isNotEmpty(searchKeyword)">
+				<if test="searchCondition == 0">AND
+					USERID LIKE #{searchKeyword}
+				</if>
+				<if test="searchCondition == 1">AND
+					USERID LIKE '%' ||#{searchKeyword}|| '%'
+				</if>
+			</if>
+	         <![CDATA[
+	        ORDER BY 10 DESC
+        ) TB ) WHERE rn BETWEEN #{firstIndex} AND #{firstIndex} + #{recordCountPerPage}
+        ]]>
+
+
+	</select>
+	
+	<select id="rcvaddrListUser"
+		parameterType="egovframework.com.msg.rcv.service.RcvaddrListVO"
+		resultType="egovframework.com.msg.rcv.service.RcvaddrListVO">
+			SELECT
+			RCV_ID as "rcvId",
+			USERID as "userId",
+			COLUMN1 as "column1",
+			RCV_NUMBER as "rcvNumber",
+			RCV_EMPLY_CHK as "rcvEmplyChk",
+			RCV_TYPE as "rcvType",
+			RCV_CHECK as "rcvCheck",
+			RCV_RSVT_CHK as "rcvRsvtChk",
+			RCV_ETC as "rcvEtc",
+			RCV_TITLE as "rcvTitle",
+			RCV_CONTENT as "rcvContent",
+			SEND_DATE as "sendDate",
+			SND_NUMBER as "sndNumber"
+			FROM
+			COMRCVADDRLIST
+			WHERE 1=1
+			 <if test="start_dt!= null and start_dt neq '' and end_dt != null and end_dt neq ''">
+		    	and m.REQ_DATE BETWEEN TO_DATE('#{start_dt}', 'YYYY/MM/DD') 
+                   AND TO_DATE('#{end_dt}', 'YYYY/MM/DD')  
+		    </if>
+			ORDER BY SEND_DATE DESC
+	</select>
+
+	<select id="userListall" resultMap="listall">
+		SELECT
+		    m.PAY_CODE, m.SENT_DATE, m.CALL_FROM, m.CALL_TO, m.SMS_TXT, m.CUR_STATE, m.MSG_TYPE_RESEND, m.RSLT_CODE, m.RSLT_CODE2, m.msg_seq,
+		    c.MMS_NOTICETALK_BODY, c.MMS_BODY, c.MMS_FRIEND_BODY, c.MMS_NOTICETALK_SUBJECT, c.MMS_SUBJECT, c.MMS_FRIEND_SUBJECT, m.EXCEL_SEQ
+		FROM
+		    MSG_LOG_${month} m LEFT JOIN MMS_CONTENTS_INFO c on m.CONT_SEQ = c.CONT_SEQ
+		WHERE 1=1
+		    AND USER_ID = #{user_id}
+		     <if test="start_dt!= null and start_dt neq '' and end_dt != null and end_dt neq ''">
+		    	and m.REQ_DATE BETWEEN TO_DATE('#{start_dt}', 'YYYY/MM/DD') 
+                   AND TO_DATE('#{end_dt}', 'YYYY/MM/DD')  
+		    </if>
+		order by m.sent_date DESC
+	</select>
+	
+	<select id="listallM" resultMap="listall">
+		SELECT
+		    m.PAY_CODE, m.SENT_DATE, m.CALL_FROM, m.CALL_TO, m.SMS_TXT, m.CUR_STATE, m.MSG_TYPE_RESEND, m.RSLT_CODE, m.RSLT_CODE2, m.msg_seq,
+		    c.MMS_NOTICETALK_BODY, c.MMS_BODY, c.MMS_FRIEND_BODY, c.MMS_NOTICETALK_SUBJECT, c.MMS_SUBJECT, c.MMS_FRIEND_SUBJECT, m.EXCEL_SEQ
+		FROM
+		    MSG_LOG_${month} m LEFT JOIN MMS_CONTENTS_INFO c on m.CONT_SEQ = c.CONT_SEQ
+		WHERE 1=1
+		order by m.sent_date DESC
+	</select>
+	
+	<select id="partgListall" resultMap="listall">
+		SELECT
+		    m.PAY_CODE, m.SENT_DATE, m.CALL_FROM, m.CALL_TO, m.SMS_TXT, m.CUR_STATE, m.MSG_TYPE_RESEND, m.RSLT_CODE, m.RSLT_CODE2, m.user_id, m.msg_seq,
+		    c.MMS_NOTICETALK_BODY, c.MMS_BODY, c.MMS_FRIEND_BODY, c.MMS_NOTICETALK_SUBJECT, c.MMS_SUBJECT, c.MMS_FRIEND_SUBJECT, m.EXCEL_SEQ, e.user_nm as user_name
+		FROM
+		    MSG_LOG_202009 m LEFT JOIN MMS_CONTENTS_INFO c on m.CONT_SEQ = c.CONT_SEQ left join comtnemplyrinfo e on e.emplyr_id = m.user_id
+		WHERE 1=1
+		    AND USER_PART = #{user_part}
+		order by m.sent_date DESC
+	</select>
+	
+	<select id="reservationU" resultMap="listall">
+		SELECT
+		    m.PAY_CODE, m.SENT_DATE, m.CALL_FROM, m.CALL_TO, m.SMS_TXT, m.CUR_STATE, m.MSG_TYPE_RESEND, m.RSLT_CODE, m.RSLT_CODE2,  m.req_date, m.msg_seq,
+		    c.MMS_NOTICETALK_BODY, c.MMS_BODY, c.MMS_FRIEND_BODY, c.MMS_NOTICETALK_SUBJECT, c.MMS_SUBJECT, c.MMS_FRIEND_SUBJECT, m.EXCEL_SEQ
+		FROM
+		    MSG_DATA m LEFT JOIN MMS_CONTENTS_INFO c on m.CONT_SEQ = c.CONT_SEQ
+		WHERE 1=1
+		    AND USER_ID = #{user_id}
+		order by m.sent_date DESC
+	</select>
+	
+	<select id="reservationM" resultMap="listall">
+		SELECT
+			m.MSG_ID,
+		    m.PAY_CODE, 
+		    m.REQ_DATE, 
+		    m.CALL_FROM, 
+		    c.MMS_SUBJECT ,
+		    c.MMS_NOTICETALK_SUBJECT ,
+		    c.MMS_FRIEND_SUBJECT ,
+		    m.SMS_TXT ,
+		    c.MMS_BODY ,
+		    c.MMS_NOTICETALK_BODY ,
+		    c.MMS_FRIEND_BODY,
+		    count(*) CNT,
+            m.user_part
+		FROM
+		    MSG_DATA m LEFT JOIN MMS_CONTENTS_INFO c on m.CONT_SEQ = c.CONT_SEQ
+		WHERE 1=1
+		GROUP BY 
+			msg_id,
+			m.PAY_CODE, 
+		    m.REQ_DATE, 
+		    m.CALL_FROM, 
+		    c.MMS_SUBJECT ,
+		    c.MMS_NOTICETALK_SUBJECT ,
+		    c.MMS_FRIEND_SUBJECT ,
+		    m.SMS_TXT ,
+		    c.MMS_BODY ,
+		    c.MMS_NOTICETALK_BODY ,
+		    c.MMS_FRIEND_BODY,
+            m.user_part
+		order by m.REQ_DATE DESC
+	</select>
+	
+	
+	<select id="reservationsU" resultMap="listall">
+		/*예약리스트 사용자*/
+		SELECT
+			m.MSG_ID,
+		    m.PAY_CODE, 
+		    m.REQ_DATE, 
+		    m.CALL_FROM, 
+		    c.MMS_SUBJECT ,
+		    c.MMS_NOTICETALK_SUBJECT ,
+		    c.MMS_FRIEND_SUBJECT ,
+		    m.SMS_TXT ,
+		    c.MMS_BODY ,
+		    c.MMS_NOTICETALK_BODY ,
+		    c.MMS_FRIEND_BODY,
+		    count(*) CNT
+		FROM
+		    MSG_DATA m LEFT JOIN MMS_CONTENTS_INFO c on m.CONT_SEQ = c.CONT_SEQ
+		WHERE 1=1
+		    AND USER_ID = #{user_id}
+		    <if test="start_dt!= null and start_dt neq '' and end_dt != null and end_dt neq ''">
+		    	and m.REQ_DATE BETWEEN TO_DATE('#{start_dt}', 'YYYY/MM/DD') 
+                   AND TO_DATE('#{end_dt}', 'YYYY/MM/DD')  
+		    </if>
+		GROUP BY 
+			msg_id,
+			m.PAY_CODE, 
+		    m.REQ_DATE, 
+		    m.CALL_FROM, 
+		    c.MMS_SUBJECT ,
+		    c.MMS_NOTICETALK_SUBJECT ,
+		    c.MMS_FRIEND_SUBJECT ,
+		    m.SMS_TXT ,
+		    c.MMS_BODY ,
+		    c.MMS_NOTICETALK_BODY ,
+		    c.MMS_FRIEND_BODY 
+		order by m.REQ_DATE DESC
+	</select>
+	
+	<select id="reservationsM" resultMap="listall">
+		/*예약리스트*/
+		SELECT
+			m.MSG_ID,
+		    m.PAY_CODE, 
+		    m.REQ_DATE, 
+		    m.CALL_FROM, 
+		    c.MMS_SUBJECT ,
+		    c.MMS_NOTICETALK_SUBJECT ,
+		    c.MMS_FRIEND_SUBJECT ,
+		    m.SMS_TXT ,
+		    c.MMS_BODY ,
+		    c.MMS_NOTICETALK_BODY ,
+		    c.MMS_FRIEND_BODY,
+		    count(*) CNT
+		FROM
+		    MSG_DATA m LEFT JOIN MMS_CONTENTS_INFO c on m.CONT_SEQ = c.CONT_SEQ
+		WHERE 1=1
+		    AND USER_ID = #{user_id}
+		GROUP BY 
+			msg_id,
+			m.PAY_CODE, 
+		    m.REQ_DATE, 
+		    m.CALL_FROM, 
+		    c.MMS_SUBJECT ,
+		    c.MMS_NOTICETALK_SUBJECT ,
+		    c.MMS_FRIEND_SUBJECT ,
+		    m.SMS_TXT ,
+		    c.MMS_BODY ,
+		    c.MMS_NOTICETALK_BODY ,
+		    c.MMS_FRIEND_BODY 
+		order by m.REQ_DATE DESC
+	</select>
+	<select id="reservationsTo" resultMap="listall">
+		/*예약리스트*/
+		SELECT
+		    CALL_TO
+		FROM
+		    MSG_DATA
+		WHERE 1=1
+		    AND MSG_ID = #{msg_id}
+		order by CALL_TO DESC
+	</select>
+	
+	
+
+	<insert id="rcvaddrInsert">
+		INSERT INTO COMRCVADDRLIST(RCV_ID, USERID, COLUMN1,
+		RCV_NUMBER, RCV_ETC, RCV_TITLE, RCV_CONTENT, RCV_TYPE, RCV_EMPLY_CHK)
+		VALUES (RCV_ID.NEXTVAL, #{userId}, #{column1}, #{rcvNumber},
+		#{rcvEtc}, #{rcvTitle}, #{rcvContent}, #{rcvType}, #{rcvEmplyChk})
+	</insert>
+
+	<delete id="resDelete">
+		DELETE FROM MSG_DATA
+		WHERE MSG_SEQ = #{msg_seq}
+	</delete>
+	<delete id="resDeletes">
+		DELETE FROM MSG_DATA
+		WHERE MSG_ID = #{msg_id}
+	</delete>
+	
+	
+</mapper>

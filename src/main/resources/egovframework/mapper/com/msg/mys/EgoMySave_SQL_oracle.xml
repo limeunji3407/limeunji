@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="MySaveDAO">
+	
+	<insert id="insertMySave">
+		INSERT INTO MYSAVE
+			(mysave_seq, title, subject, userid, status
+			<if test="imgFile != null and !imgFile.equals(''.toString())">
+				, IMGFILE
+			</if>
+			)
+		VALUES
+			(mysave_seq.NEXTVAL, #{title}, #{subject}, #{userId}, #{status}
+			<if test="imgFile != null and !imgFile.equals(''.toString())">
+				, #{imgFile}
+			</if>
+			)
+	</insert>
+	
+	<select id="MySaveList" resultType="egovframework.com.msg.mys.service.MySaveVO">
+		SELECT
+			mysave_seq as mysaveSeq, title, subject, userid, status, reg_date as regDate
+		FROM
+			MYSAVE
+		WHERE
+			userid = #{userId} and status = #{status}
+			<if test="searchCnd != null and searchCnd.equals('title'.toString())">
+				and title like '%'||#{searchWrd}||'%'
+			</if>
+			<if test="searchCnd != null and searchCnd.equals('subject'.toString())">
+				and subject like '%'||#{searchWrd}||'%'
+			</if>
+			
+	</select>
+	
+	<delete id="deleteMySave">
+		DELETE FROM MYSAVE
+		WHERE mysave_seq = #{mysaveSeq}
+	</delete>
+</mapper>
